@@ -1,0 +1,118 @@
+// const User = require('../models/user'); // Adjust path/casing as needed
+const UserModel = require('../models/user');
+const UserMetaModel = require('../models/user_meta');
+const { Sequelize } = require('sequelize');
+const sequelize = new Sequelize(
+  process.env.PG_DATABASE || 'driveinnovate',
+  process.env.PG_USER || 'root',
+  process.env.PG_PASSWORD || '',
+  {
+    host: process.env.PG_HOST || 'localhost',
+    port: process.env.PG_PORT || 3306, // Use MySQL default port
+    dialect: 'mysql', // Use MySQL dialect
+    logging: false
+  }
+);
+const User = UserModel(sequelize);
+const UserMeta = UserMetaModel(sequelize);
+
+async function loginUser(email, password) {
+    console.table([{ email, password: '***' }]);
+
+    console.log('in loginUser', User);
+
+    // let user;
+
+    // // Try Sequelize style (findOne with where)
+    // if (typeof User.findOne === 'function') {
+    //     try {
+    const user = await User.findOne({ where: { email: email } });
+    //     } catch (e) {
+    //         // If error, try Mongoose style
+    //         user = await User.findOne({ email });
+    //     }
+    // } else if (typeof User.find === 'function') {
+    //     // Try Mongoose find
+    //     user = await User.findOne({ email });
+    // } else {
+    //     console.table([{ error: 'User model does not support findOne or find.' }]);
+    //     return null;
+    // }
+
+    if (!user || user.active === false) {
+        console.table([{ error: 'Invalid credentials or inactive user.' }]);
+        return null;
+    }
+
+    const userObj = user.toJSON ? user.toJSON() : user;
+
+    const isPasswordValid = password === userObj.password;
+
+    if (!isPasswordValid) {
+        console.table([{ error: 'Invalid credentials.' }]);
+        return null;
+    }
+
+    // Fetch user_meta for this user
+    const userMeta = await UserMeta.findOne({ where: { user_id: userObj.id } });
+    const userMetaObj = userMeta ? (userMeta.toJSON ? userMeta.toJSON() : userMeta) : null;
+
+    // Combine user and userMeta data
+    const response = {
+        user: userObj,
+        userMeta: userMetaObj
+    };
+
+    console.table([response]);
+    return response;
+}
+
+async function registerUser(data) {
+    console.log('Registering user:', data);
+    // Split data for User and UserMeta tables
+    const userData = {
+        name: data.name,
+        email: data.email,
+        
+        password: data.password,
+        role: data.userType,
+        dealer_id: data.dealer_id || null,
+        client_id: data.client_id || null,
+        admin_id: data.admin_id || null,
+        dealer_id: data.dealer_id || null
+    };
+
+    // Create user record
+    const user = await User.create(userData);
+    const userObj = user.toJSON ? user.toJSON() : user;
+
+    // Prepare UserMeta data
+    const userMetaData = {
+        user_id: userObj.id,
+        phone: data.phone,
+        address: data.address,
+        country: data.country,
+        city: data.city,
+        state: data.state,
+        zip: data.pin
+        // Add other UserMeta fields if needed
+    };
+
+    // Create user_meta record
+    const userMeta = await UserMeta.create(userMetaData);
+
+    // Log both records
+    console.table([userObj]);
+    console.table([userMeta.toJSON ? userMeta.toJSON() : userMeta]);
+
+    // Return combined response
+    return {
+        user: userObj,
+        userMeta: userMeta.toJSON ? userMeta.toJSON() : userMeta
+    };
+}
+
+module.exports = {
+    loginUser,
+    registerUser
+};

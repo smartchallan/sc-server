@@ -1,0 +1,103 @@
+{
+  "info": {
+    "_postman_id": "driveinnovate-app-server-apis",
+    "name": "DriveInnovate App Server APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"yourpassword\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register Dealer",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"dealer1@example.com\",\n  \"password\": \"password123\",\n  \"status\": \"active\"\n}"
+        },
+        "url": {"raw": "http://localhost:3000/dealers", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["dealers"]}
+      }
+    },
+    {
+      "name": "Get All Dealers",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:3000/dealers", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["dealers"]}
+      }
+    },
+    {
+      "name": "Register Client",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"client1@example.com\",\n  \"password\": \"password123\",\n  \"status\": \"active\",\n  \"dealer_id\": 1\n}"
+        },
+        "url": {"raw": "http://localhost:3000/clients", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["clients"]}
+      }
+    },
+    {
+      "name": "Get All Clients",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:3000/clients", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["clients"]}
+      }
+    },
+    {
+      "name": "Get Clients by Dealer",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:3000/clients/dealer/1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["clients", "dealer", "1"]}
+      }
+    },
+    {
+      "name": "Register Team",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"team1@example.com\",\n  \"password\": \"password123\",\n  \"status\": \"active\",\n  \"client_id\": 1\n}"
+        },
+        "url": {"raw": "http://localhost:3000/team", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["team"]}
+      }
+    },
+    {
+      "name": "Get Vehicle Data",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "http://localhost:3000/vehicle-data?vehicle_no=ABC123&imei_no=1234567890", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["vehicle-data"], "query": [{"key": "vehicle_no", "value": "ABC123"}, {"key": "imei_no", "value": "1234567890"}]}
+      }
+    }
+  ]
+}
