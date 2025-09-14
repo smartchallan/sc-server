@@ -1,0 +1,40 @@
+{
+  "info": {
+    "_postman_id": "b1e2c7e0-getulipdata-1234-5678-abcdef123456",
+    "name": "Get ULIP Vehicle By Number API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for testing the /getulipdata/getVehicleByNumber endpoint."
+  },
+  "item": [
+    {
+      "name": "Get Vehicle By Number (ULIP)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/getulipdata/getVehicleByNumber?vehiclenumber={{vehiclenumber}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["getulipdata", "getVehicleByNumber"],
+          "query": [
+            { "key": "vehiclenumber", "value": "{{vehiclenumber}}" }
+          ]
+        },
+        "description": "Fetch vehicle data from ULIP by vehicle number."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "vehiclenumber",
+      "value": "HR26CX4194"
+    }
+  ]
+}

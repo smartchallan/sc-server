@@ -35,6 +35,7 @@ const UserVehiclesModel = require('./models/user_vehicles');
 const UserSettingsModel = require('./models/user_settings');
 const UserVehicleRtoDataModel = require('./models/userVehicleRtoData');
 
+
 const User = UserModel(sequelize);
 const UserMeta = UserMetaModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
@@ -119,10 +120,17 @@ app.use('/trackvehicle', vehicleDataRouter);
 app.use('/auth', authRouter);
 app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
-app.use('/vehicle', vehicleUlipRouter);
-app.use('/vehiclechallan', vehicleChallanRouter);
+
+
+
+// ULIP Services
+app.use('/vehiclertodata', userVehicleRtoDataRouter);
+app.use('/vehiclechallandata', vehicleChallanRouter);
 app.use('/driverdata', driverDataRouter);
-app.use('/fastagdata', fastagDataRouter);
+app.use('/vehiclefastagdata', fastagDataRouter);
+app.use('/getulipdata', vehicleUlipRouter);
+// ULIP Services end
+
 app.use('/uservehicle', userVehicleRouter);
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);

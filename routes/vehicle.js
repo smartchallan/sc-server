@@ -2,12 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { getVehicleByNumber } = require('../services/vehicleService');
 
-// POST /getvehiclebynumber
-router.post('/getvehiclebynumber', async (req, res) => {
+
+
+// GET /getvehiclebynumber
+router.get('/getvehiclebynumber', async (req, res) => {
+  console.log('hello checkpoint 1');
   try {
-    const { vehiclenumber } = req.body;
+    const { vehiclenumber } = req.query;
     if (!vehiclenumber) {
-      return res.status(400).json({ error: 'vehiclenumber is required' });
+      return res.status(400).json({ error: 'vehiclenumber is required as a query parameter' });
     }
     const result = await getVehicleByNumber(vehiclenumber);
     res.json(result);
@@ -17,3 +20,4 @@ router.post('/getvehiclebynumber', async (req, res) => {
 });
 
 module.exports = router;
+  

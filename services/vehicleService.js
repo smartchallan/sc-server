@@ -5,12 +5,16 @@ const ULIP_VAHAN_URL = process.env.ULIP_VAHAN_URL || 'https://www.ulipstaging.dp
 
 async function getVehicleByNumber(vehicleNumber) {
   try {
+
+    console.log('hello checkpoint 2', vehicleNumber);
     // Step 1: Login to ULIP and get token
     const loginRes = await axios.post(ULIP_LOGIN_URL, {
       // Add required login credentials here
-      // username: process.env.ULIP_USERNAME,
-      // password: process.env.ULIP_PASSWORD
+      username: process.env.ULIP_USERNAME,
+      password: process.env.ULIP_PASSWORD
     });
+
+    console.log('ulip res', loginRes);
     const token = loginRes.data?.token;
     if (!token) throw new Error('ULIP login failed, token not received');
 
@@ -22,6 +26,7 @@ async function getVehicleByNumber(vehicleNumber) {
     );
     return vahanRes.data;
   } catch (err) {
+    console.error('Error in getVehicleByNumber:', err.message);
     throw err;
   }
 }
