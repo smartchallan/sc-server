@@ -1,0 +1,37 @@
+{
+  "info": {
+    "_postman_id": "b1e2c7e0-1234-4cde-9abc-abcdef123456",
+    "name": "Client Data API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for testing the /clientdata/:client_id endpoint."
+  },
+  "item": [
+    {
+      "name": "Get Client Registered Vehicles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/clientdata/{{client_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["clientdata", "{{client_id}}"]
+        },
+        "description": "Fetch all vehicles registered to a client by client_id."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "client_id",
+      "value": "1"
+    }
+  ]
+}

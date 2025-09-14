@@ -51,6 +51,7 @@ if (!User.associations.meta) {
 // Pass initialized models to adminDataRouter
 const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData };
 const adminDataRouter = require('./routes/adminData')(models);
+const clientDataRouter = require('./routes/clientData')(models);
 
 const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
@@ -125,6 +126,7 @@ app.use('/fastagdata', fastagDataRouter);
 app.use('/uservehicle', userVehicleRouter);
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);
+app.use('/clientdata', clientDataRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
