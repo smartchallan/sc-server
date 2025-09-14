@@ -99,5 +99,76 @@
         "url": {"raw": "http://localhost:3000/vehicle-data?vehicle_no=ABC123&imei_no=1234567890", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["vehicle-data"], "query": [{"key": "vehicle_no", "value": "ABC123"}, {"key": "imei_no", "value": "1234567890"}]}
       }
     }
+  ,
+    {
+      "name": "Track Vehicle (ULIP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicleNumber\": \"MH12AB1234\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/trackvehicle", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["trackvehicle"] }
+      }
+    },
+    {
+      "name": "Vehicle ULIP Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicleNumber\": \"MH12AB1234\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/vehicle", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["vehicle"] }
+      }
+    },
+    {
+      "name": "Vehicle Challan Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicleNumber\": \"MH12AB1234\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/vehiclechallan", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["vehiclechallan"] }
+      }
+    },
+    {
+      "name": "Driver Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"driverId\": \"DL1234567890\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/driverdata", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["driverdata"] }
+      }
+    },
+    {
+      "name": "Fastag Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fastagNumber\": \"FT1234567890\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/fastagdata", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["fastagdata"] }
+      }
+    }
   ]
 }

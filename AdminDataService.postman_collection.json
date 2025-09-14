@@ -1,0 +1,23 @@
+{
+  "info": {
+    "_postman_id": "admin-data-service",
+    "name": "Admin Data Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for fetching all admin-related data (dealers, clients, vehicles)."
+  },
+  "item": [
+    {
+      "name": "Get Admin Data",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/admindata/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["admindata", "1"]
+        }
+      }
+    }
+  ]
+}

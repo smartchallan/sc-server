@@ -1,0 +1,30 @@
+{
+  "info": {
+    "_postman_id": "user-vehicle-rto-data-service",
+    "name": "User Vehicle RTO Data Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for storing user vehicle RTO data."
+  },
+  "item": [
+    {
+      "name": "Register User Vehicle RTO Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+      "raw": "{\n  \"vehicle_number\": \"RJ11GC0346\",\n  \"engine_number\": \"B5.6B6A180D02122B638***\",\n  \"chasis_number\": \"MAT794002N1C***\",\n  \"rc_regn_no\": \"RJ11GC0346\",\n  \"rc_regn_dt\": \"2022-04-05\",\n  \"rc_owner_name\": \"S***A S**H\",\n  \"rc_chasi_no\": \"MAT794002N1C***\",\n  \"rc_eng_no\": \"B5.6B6A180D02122B638***\",\n  \"rc_maker_desc\": \"TATA MOTORS LTD\",\n  \"rc_maker_model\": \"TATA LPT 2818 BS-VI\",\n  \"rc_body_type_desc\": \"TRUCK CLOSE BODY\",\n  \"rc_fuel_desc\": \"DIESEL\",\n  \"rc_color\": \"NP\",\n  \"rc_fit_upto\": \"2026-04-04\",\n  \"rc_status\": \"ACTIVE\",\n  \"created_at\": \"2025-09-13T12:00:00Z\",\n  \"updated_at\": \"2025-09-13T12:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/userrtodata/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["userrtodata", "register"]
+        }
+      }
+    }
+  ]
+}

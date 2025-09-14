@@ -1,0 +1,78 @@
+{
+  "info": {
+    "_postman_id": "user-vehicle-service",
+    "name": "User Vehicle Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for user vehicle registration and fetch endpoints."
+  },
+  "item": [
+    {
+      "name": "Register User Vehicle",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicle_number\": \"MH12AB1234\",\n  \"chasis_number\": \"CHS1234567890\",\n  \"engine_number\": \"ENG9876543210\",\n  \"client_id\": 1,\n  \"dealer_id\": 2,\n  \"admin_id\": 3\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/uservehicle/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["uservehicle", "register"]
+        }
+      }
+    },
+    {
+      "name": "Get User Vehicles by admin_id",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/uservehicle?admin_id=3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["uservehicle"],
+          "query": [
+            { "key": "admin_id", "value": "3" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get User Vehicles by dealer_id",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/uservehicle?dealer_id=2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["uservehicle"],
+          "query": [
+            { "key": "dealer_id", "value": "2" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get User Vehicles by client_id",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:3000/uservehicle?client_id=1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["uservehicle"],
+          "query": [
+            { "key": "client_id", "value": "1" }
+          ]
+        }
+      }
+    }
+  ]
+}

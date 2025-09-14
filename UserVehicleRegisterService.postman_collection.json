@@ -1,0 +1,30 @@
+{
+  "info": {
+    "_postman_id": "user-vehicle-register-service",
+    "name": "User Vehicle Register Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for registering a user vehicle."
+  },
+  "item": [
+    {
+      "name": "Register User Vehicle",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"vehicle_number\": \"MH12AB1234\",\n  \"chasis_number\": \"CHS1234567890\",\n  \"engine_number\": \"ENG9876543210\",\n  \"client_id\": 1,\n  \"dealer_id\": 2,\n  \"admin_id\": 3\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/uservehicle/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["uservehicle", "register"]
+        }
+      }
+    }
+  ]
+}

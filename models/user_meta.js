@@ -16,5 +16,17 @@ module.exports = (sequelize) => {
     tableName: 'di_user_meta',
     timestamps: false
   });
+
+  // Setup association here to avoid eager loading error
+  try {
+    const User = require('./user')(sequelize);
+    if (!UserMeta.associations.user) {
+      UserMeta.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+      User.hasOne(UserMeta, { foreignKey: 'user_id', as: 'meta' });
+    }
+  } catch (e) {
+    // ignore if cyclic require
+  }
+
   return UserMeta;
 };

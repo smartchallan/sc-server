@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
@@ -6,28 +7,6 @@ const { Sequelize } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const consoleTable = require('console.table');
 const cors = require('cors');
-
-// Sequelize models
-const UserModel = require('./models/user');
-const UserMetaModel = require('./models/user_meta');
-const UserSettingsModel = require('./models/user_settings');
-const UserVehiclesModel = require('./models/user_vehicles');
-// Mongoose model
-const VehicleData = require('./mongoose/vehicle_data');
-const dealersRouter = require('./routes/dealers');
-
-const vehicleDataRouter = require('./routes/vehicleData');
-const vehicleUlipRouter = require('./routes/vehicle');
-const authRouter = require('./routes/auth');
-const countRouter = require('./routes/count');
-
-const app = express();
-
-// Allow CORS from anywhere
-app.use(cors());
-
-app.use(express.json());
-app.use(helmet());
 
 // PostgreSQL connection
 const sequelize = new Sequelize(
@@ -47,6 +26,54 @@ const sequelize = new Sequelize(
     } : {},
   }
 );
+
+// Initialize models once
+const UserModel = require('./models/user');
+const UserMetaModel = require('./models/user_meta');
+const UserVehicleModel = require('./models/userVehicle');
+const UserVehiclesModel = require('./models/user_vehicles');
+const UserSettingsModel = require('./models/user_settings');
+const UserVehicleRtoDataModel = require('./models/userVehicleRtoData');
+
+const User = UserModel(sequelize);
+const UserMeta = UserMetaModel(sequelize);
+const UserVehicle = UserVehicleModel(sequelize);
+const UserVehicles = UserVehiclesModel(sequelize);
+const UserSettings = UserSettingsModel(sequelize);
+const UserVehicleRtoData = UserVehicleRtoDataModel(sequelize);
+
+// Setup association for User <-> UserMeta
+if (!User.associations.meta) {
+  User.hasOne(UserMeta, { foreignKey: 'user_id', as: 'meta' });
+  UserMeta.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+}
+
+// Pass initialized models to adminDataRouter
+const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData };
+const adminDataRouter = require('./routes/adminData')(models);
+
+const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
+const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
+// Mongoose model
+const VehicleData = require('./mongoose/vehicle_data');
+const dealersRouter = require('./routes/dealers');
+
+const vehicleDataRouter = require('./routes/vehicleData');
+const vehicleUlipRouter = require('./routes/vehicle');
+const vehicleChallanRouter = require('./routes/vehicleChallan');
+const driverDataRouter = require('./routes/driverData');
+const fastagDataRouter = require('./routes/fastagData');
+const authRouter = require('./routes/auth');
+const countRouter = require('./routes/count');
+
+const app = express();
+
+// Allow CORS from anywhere
+app.use(cors());
+
+app.use(express.json());
+app.use(helmet());
+
 
 sequelize.authenticate()
   .then(() => {
@@ -68,11 +95,8 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/driveinnova
     console.error('Unable to connect to MongoDB:', err);
   });
 
-// Initialize models
-const User = UserModel(sequelize);
-const UserMeta = UserMetaModel(sequelize);
-const UserSettings = UserSettingsModel(sequelize);
-const UserVehicles = UserVehiclesModel(sequelize);
+// Sequelize models (already initialized above)
+// (User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData already initialized above)
 
 // Helper: Encrypt PII
 function encryptPII(data) {
@@ -89,11 +113,18 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/vehicle-data', vehicleDataRouter);
+
+app.use('/trackvehicle', vehicleDataRouter);
 app.use('/auth', authRouter);
 app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
-app.use('/challan', vehicleUlipRouter);
+app.use('/vehicle', vehicleUlipRouter);
+app.use('/vehiclechallan', vehicleChallanRouter);
+app.use('/driverdata', driverDataRouter);
+app.use('/fastagdata', fastagDataRouter);
+app.use('/uservehicle', userVehicleRouter);
+app.use('/userrtodata', userVehicleRtoDataRouter);
+app.use('/admindata', adminDataRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
