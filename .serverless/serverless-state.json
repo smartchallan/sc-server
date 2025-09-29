@@ -1,0 +1,979 @@
+{
+  "service": {
+    "service": "vehicle-api",
+    "serviceObject": {
+      "name": "vehicle-api"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "ap-south-1",
+      "environment": {
+        "PG_USER": "admin",
+        "PG_PASSWORD": "driveInnovate!passw0rd",
+        "PG_DATABASE": "driveinnovate_stage",
+        "PG_HOST": "driveinnovate-db-stage-instance.ctqgkgge2syj.ap-south-1.rds.amazonaws.com",
+        "PG_PORT": "3306",
+        "PG_SSL": "false",
+        "MONGO_URI": "mongodb+srv://maavintechsolution:TyAjN7uUG36WDogV@maavinvehicles.tvrfrxf.mongodb.net/?retryWrites=true&w=majority&appName=maavinvehicles",
+        "ULIP_DRIVER_DATA_URL": "https://ulip-api.example.com/getdriverdata",
+        "ULIP_FASTAG_DATA_URL": "https://ulip-api.example.com/getfastagdata",
+        "ULIP_USERNAME": "technoton_usr",
+        "ULIP_PASSWORD": "technoton@04072025",
+        "ULIP_CLIENT_ID": "your_ulip_client_id",
+        "ULIP_CLIENT_SECRET": "your_ulip_client_secret",
+        "EMAIL_ENCRYPTION_KEY": "12345678901234567890123456789012"
+      },
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "GetVehicleByNumberLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/vehicle-api-dev-getVehicleByNumber"
+            }
+          },
+          "VehiclertodataLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/vehicle-api-dev-vehiclertodata"
+            }
+          },
+          "AdminDataLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/vehicle-api-dev-adminData"
+            }
+          },
+          "ClientDataLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/vehicle-api-dev-clientData"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "vehicle-api",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/vehicle-api-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/vehicle-api-dev*:*:*"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "vehicle-api",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "GetVehicleByNumberLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-f71627bf-e39b",
+                "S3Key": "serverless/vehicle-api/dev/1757924308674-2025-09-15T08:18:28.674Z/vehicle-api.zip"
+              },
+              "Handler": "lambda/handlers/getVehicleByNumber.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "vehicle-api-dev-getVehicleByNumber",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PG_USER": "admin",
+                  "PG_PASSWORD": "driveInnovate!passw0rd",
+                  "PG_DATABASE": "driveinnovate_stage",
+                  "PG_HOST": "driveinnovate-db-stage-instance.ctqgkgge2syj.ap-south-1.rds.amazonaws.com",
+                  "PG_PORT": "3306",
+                  "PG_SSL": "false",
+                  "MONGO_URI": "mongodb+srv://maavintechsolution:TyAjN7uUG36WDogV@maavinvehicles.tvrfrxf.mongodb.net/?retryWrites=true&w=majority&appName=maavinvehicles",
+                  "ULIP_DRIVER_DATA_URL": "https://ulip-api.example.com/getdriverdata",
+                  "ULIP_FASTAG_DATA_URL": "https://ulip-api.example.com/getfastagdata",
+                  "ULIP_USERNAME": "technoton_usr",
+                  "ULIP_PASSWORD": "technoton@04072025",
+                  "ULIP_CLIENT_ID": "your_ulip_client_id",
+                  "ULIP_CLIENT_SECRET": "your_ulip_client_secret",
+                  "EMAIL_ENCRYPTION_KEY": "12345678901234567890123456789012"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "GetVehicleByNumberLogGroup"
+            ]
+          },
+          "VehiclertodataLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-f71627bf-e39b",
+                "S3Key": "serverless/vehicle-api/dev/1757924308674-2025-09-15T08:18:28.674Z/vehicle-api.zip"
+              },
+              "Handler": "lambda/handlers/vehiclertodata.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "vehicle-api-dev-vehiclertodata",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PG_USER": "admin",
+                  "PG_PASSWORD": "driveInnovate!passw0rd",
+                  "PG_DATABASE": "driveinnovate_stage",
+                  "PG_HOST": "driveinnovate-db-stage-instance.ctqgkgge2syj.ap-south-1.rds.amazonaws.com",
+                  "PG_PORT": "3306",
+                  "PG_SSL": "false",
+                  "MONGO_URI": "mongodb+srv://maavintechsolution:TyAjN7uUG36WDogV@maavinvehicles.tvrfrxf.mongodb.net/?retryWrites=true&w=majority&appName=maavinvehicles",
+                  "ULIP_DRIVER_DATA_URL": "https://ulip-api.example.com/getdriverdata",
+                  "ULIP_FASTAG_DATA_URL": "https://ulip-api.example.com/getfastagdata",
+                  "ULIP_USERNAME": "technoton_usr",
+                  "ULIP_PASSWORD": "technoton@04072025",
+                  "ULIP_CLIENT_ID": "your_ulip_client_id",
+                  "ULIP_CLIENT_SECRET": "your_ulip_client_secret",
+                  "EMAIL_ENCRYPTION_KEY": "12345678901234567890123456789012"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "VehiclertodataLogGroup"
+            ]
+          },
+          "AdminDataLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-f71627bf-e39b",
+                "S3Key": "serverless/vehicle-api/dev/1757924308674-2025-09-15T08:18:28.674Z/vehicle-api.zip"
+              },
+              "Handler": "lambda/handlers/adminData.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "vehicle-api-dev-adminData",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PG_USER": "admin",
+                  "PG_PASSWORD": "driveInnovate!passw0rd",
+                  "PG_DATABASE": "driveinnovate_stage",
+                  "PG_HOST": "driveinnovate-db-stage-instance.ctqgkgge2syj.ap-south-1.rds.amazonaws.com",
+                  "PG_PORT": "3306",
+                  "PG_SSL": "false",
+                  "MONGO_URI": "mongodb+srv://maavintechsolution:TyAjN7uUG36WDogV@maavinvehicles.tvrfrxf.mongodb.net/?retryWrites=true&w=majority&appName=maavinvehicles",
+                  "ULIP_DRIVER_DATA_URL": "https://ulip-api.example.com/getdriverdata",
+                  "ULIP_FASTAG_DATA_URL": "https://ulip-api.example.com/getfastagdata",
+                  "ULIP_USERNAME": "technoton_usr",
+                  "ULIP_PASSWORD": "technoton@04072025",
+                  "ULIP_CLIENT_ID": "your_ulip_client_id",
+                  "ULIP_CLIENT_SECRET": "your_ulip_client_secret",
+                  "EMAIL_ENCRYPTION_KEY": "12345678901234567890123456789012"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "AdminDataLogGroup"
+            ]
+          },
+          "ClientDataLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-f71627bf-e39b",
+                "S3Key": "serverless/vehicle-api/dev/1757924308674-2025-09-15T08:18:28.674Z/vehicle-api.zip"
+              },
+              "Handler": "lambda/handlers/clientData.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "vehicle-api-dev-clientData",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PG_USER": "admin",
+                  "PG_PASSWORD": "driveInnovate!passw0rd",
+                  "PG_DATABASE": "driveinnovate_stage",
+                  "PG_HOST": "driveinnovate-db-stage-instance.ctqgkgge2syj.ap-south-1.rds.amazonaws.com",
+                  "PG_PORT": "3306",
+                  "PG_SSL": "false",
+                  "MONGO_URI": "mongodb+srv://maavintechsolution:TyAjN7uUG36WDogV@maavinvehicles.tvrfrxf.mongodb.net/?retryWrites=true&w=majority&appName=maavinvehicles",
+                  "ULIP_DRIVER_DATA_URL": "https://ulip-api.example.com/getdriverdata",
+                  "ULIP_FASTAG_DATA_URL": "https://ulip-api.example.com/getfastagdata",
+                  "ULIP_USERNAME": "technoton_usr",
+                  "ULIP_PASSWORD": "technoton@04072025",
+                  "ULIP_CLIENT_ID": "your_ulip_client_id",
+                  "ULIP_CLIENT_SECRET": "your_ulip_client_secret",
+                  "EMAIL_ENCRYPTION_KEY": "12345678901234567890123456789012"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ClientDataLogGroup"
+            ]
+          },
+          "GetVehicleByNumberLambdaVersionsetwv8t4bBJ8NmD6VpxiwB7Bi7guB3Xcbm2MDlKruJw": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetVehicleByNumberLambdaFunction"
+              },
+              "CodeSha256": "DkeAtfN4N5XSdzBJblaN/6SueQlFhoXykl1rQQ900jU="
+            }
+          },
+          "VehiclertodataLambdaVersionWTCQb7n3Q41vvnPjGVhDbuMRinpAXB7kTMdmrzfZw": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "VehiclertodataLambdaFunction"
+              },
+              "CodeSha256": "DkeAtfN4N5XSdzBJblaN/6SueQlFhoXykl1rQQ900jU="
+            }
+          },
+          "AdminDataLambdaVersionsfykV1eUDxmOsRCWi4Dmc8dXuyovSUSR9tHQuclpyE": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AdminDataLambdaFunction"
+              },
+              "CodeSha256": "DkeAtfN4N5XSdzBJblaN/6SueQlFhoXykl1rQQ900jU="
+            }
+          },
+          "ClientDataLambdaVersionsgHBNZfbQXRNUnx4U0H760qnPVfXEpaWOxyiidXZvGc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ClientDataLambdaFunction"
+              },
+              "CodeSha256": "DkeAtfN4N5XSdzBJblaN/6SueQlFhoXykl1rQQ900jU="
+            }
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "dev-vehicle-api",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": ""
+            }
+          },
+          "ApiGatewayResourceGetulipdata": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "getulipdata",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceGetulipdataGetvehiclebynumber": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceGetulipdata"
+              },
+              "PathPart": "getVehicleByNumber",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceVehiclertodata": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "vehiclertodata",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceVehiclertodataVehiclenumberVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceVehiclertodata"
+              },
+              "PathPart": "{vehicle_number}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdmindata": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "admindata",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAdmindataAdminidVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAdmindata"
+              },
+              "PathPart": "{admin_id}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceClientdata": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "clientdata",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceClientdataClientidVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceClientdata"
+              },
+              "PathPart": "{client_id}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodGetulipdataGetvehiclebynumberGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceGetulipdataGetvehiclebynumber"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetVehicleByNumberLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "GetVehicleByNumberLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodVehiclertodataVehiclenumberVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceVehiclertodataVehiclenumberVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "VehiclertodataLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "VehiclertodataLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodAdmindataAdminidVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAdmindataAdminidVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "AdminDataLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "AdminDataLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodClientdataClientidVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceClientdataClientidVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ClientDataLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ClientDataLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayDeployment1757924286870": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodGetulipdataGetvehiclebynumberGet",
+              "ApiGatewayMethodVehiclertodataVehiclenumberVarGet",
+              "ApiGatewayMethodAdmindataAdminidVarGet",
+              "ApiGatewayMethodClientdataClientidVarGet"
+            ]
+          },
+          "GetVehicleByNumberLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetVehicleByNumberLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "VehiclertodataLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "VehiclertodataLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "AdminDataLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AdminDataLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "ClientDataLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ClientDataLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-ap-south-1-f71627bf-e39b",
+            "Export": {
+              "Name": "sls-vehicle-api-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "GetVehicleByNumberLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetVehicleByNumberLambdaVersionsetwv8t4bBJ8NmD6VpxiwB7Bi7guB3Xcbm2MDlKruJw"
+            },
+            "Export": {
+              "Name": "sls-vehicle-api-dev-GetVehicleByNumberLambdaFunctionQualifiedArn"
+            }
+          },
+          "VehiclertodataLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "VehiclertodataLambdaVersionWTCQb7n3Q41vvnPjGVhDbuMRinpAXB7kTMdmrzfZw"
+            },
+            "Export": {
+              "Name": "sls-vehicle-api-dev-VehiclertodataLambdaFunctionQualifiedArn"
+            }
+          },
+          "AdminDataLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AdminDataLambdaVersionsfykV1eUDxmOsRCWi4Dmc8dXuyovSUSR9tHQuclpyE"
+            },
+            "Export": {
+              "Name": "sls-vehicle-api-dev-AdminDataLambdaFunctionQualifiedArn"
+            }
+          },
+          "ClientDataLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ClientDataLambdaVersionsgHBNZfbQXRNUnx4U0H760qnPVfXEpaWOxyiidXZvGc"
+            },
+            "Export": {
+              "Name": "sls-vehicle-api-dev-ClientDataLambdaFunctionQualifiedArn"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-vehicle-api-dev-ServiceEndpoint"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "pluginsData": {},
+    "functions": {
+      "getVehicleByNumber": {
+        "handler": "lambda/handlers/getVehicleByNumber.handler",
+        "events": [
+          {
+            "http": {
+              "path": "getulipdata/getVehicleByNumber",
+              "method": "get",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "vehicle-api-dev-getVehicleByNumber",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "GetVehicleByNumberLambdaVersionsetwv8t4bBJ8NmD6VpxiwB7Bi7guB3Xcbm2MDlKruJw"
+      },
+      "vehiclertodata": {
+        "handler": "lambda/handlers/vehiclertodata.handler",
+        "events": [
+          {
+            "http": {
+              "path": "vehiclertodata/{vehicle_number}",
+              "method": "get",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "vehicle-api-dev-vehiclertodata",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "VehiclertodataLambdaVersionWTCQb7n3Q41vvnPjGVhDbuMRinpAXB7kTMdmrzfZw"
+      },
+      "adminData": {
+        "handler": "lambda/handlers/adminData.handler",
+        "events": [
+          {
+            "http": {
+              "path": "admindata/{admin_id}",
+              "method": "get",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "vehicle-api-dev-adminData",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "AdminDataLambdaVersionsfykV1eUDxmOsRCWi4Dmc8dXuyovSUSR9tHQuclpyE"
+      },
+      "clientData": {
+        "handler": "lambda/handlers/clientData.handler",
+        "events": [
+          {
+            "http": {
+              "path": "clientdata/{client_id}",
+              "method": "get",
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "vehicle-api-dev-clientData",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "ClientDataLambdaVersionsgHBNZfbQXRNUnx4U0H760qnPVfXEpaWOxyiidXZvGc"
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "service": "vehicle-api",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      }
+    },
+    "appId": null,
+    "orgId": null,
+    "layers": {},
+    "artifact": "C:\\Users\\pande\\OneDrive\\Desktop\\projects\\sc-server\\.serverless\\vehicle-api.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/vehicle-api/dev/1757924308674-2025-09-15T08:18:28.674Z",
+    "artifact": "vehicle-api.zip"
+  }
+}

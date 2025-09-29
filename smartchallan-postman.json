@@ -1,0 +1,167 @@
+{
+  "info": {
+    "name": "Vehicle API Lambda Handlers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Track Vehicle",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/trackvehicle?vehicleNumber=MH12AB1234",
+          "host": ["{{baseUrl}}"],
+          "path": ["trackvehicle"],
+          "query": [
+            { "key": "vehicleNumber", "value": "MH12AB1234" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"username\": \"testuser\", \"password\": \"testpass\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Auth Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"username\": \"newuser\", \"password\": \"newpass\", \"email\": \"user@example.com\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+      }
+    },
+    {
+      "name": "Get Dealer Count",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/stats/getdealercount", "host": ["{{baseUrl}}"], "path": ["stats", "getdealercount"] }
+      }
+    },
+    {
+      "name": "Get Client Count",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/stats/getclientcount", "host": ["{{baseUrl}}"], "path": ["stats", "getclientcount"] }
+      }
+    },
+    {
+      "name": "Get Vehicle Count",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/stats/getvehiclecount", "host": ["{{baseUrl}}"], "path": ["stats", "getvehiclecount"] }
+      }
+    },
+    {
+      "name": "Get Vehicle By Number",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/getulipdata/getVehicleByNumber?vehicleNumber=MH12AB1234", "host": ["{{baseUrl}}"], "path": ["getulipdata", "getVehicleByNumber"], "query": [{ "key": "vehicleNumber", "value": "MH12AB1234" }] }
+      }
+    },
+    {
+      "name": "Register Vehicle",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"vehicleNumber\": \"MH12AB1234\", \"owner\": \"John Doe\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/uservehicle/register", "host": ["{{baseUrl}}"], "path": ["uservehicle", "register"] }
+      }
+    },
+    {
+      "name": "Vehicle RTO Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/vehiclertodata/MH12AB1234", "host": ["{{baseUrl}}"], "path": ["vehiclertodata", "MH12AB1234"] }
+      }
+    },
+    {
+      "name": "Admin Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/admindata/1", "host": ["{{baseUrl}}"], "path": ["admindata", "1"] }
+      }
+    },
+    {
+      "name": "Client Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/clientdata/1", "host": ["{{baseUrl}}"], "path": ["clientdata", "1"] }
+      }
+    },
+    {
+      "name": "Driver Data",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"driverId\": \"D123\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/driverdata", "host": ["{{baseUrl}}"], "path": ["driverdata"] }
+      }
+    },
+    {
+      "name": "Fastag Data",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"fastagId\": \"F123\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/fastagdata", "host": ["{{baseUrl}}"], "path": ["fastagdata"] }
+      }
+    },
+    {
+      "name": "Vehicle Challan",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"vehicleNumber\": \"MH12AB1234\" }"
+        },
+        "url": { "raw": "{{baseUrl}}/vehiclechallan", "host": ["{{baseUrl}}"], "path": ["vehiclechallan"] }
+      }
+    },
+    {
+      "name": "Vehicle Data (All)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/vehicledata/all", "host": ["{{baseUrl}}"], "path": ["vehicledata", "all"] }
+      }
+    },
+    {
+      "name": "User Vehicle List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/uservehicle", "host": ["{{baseUrl}}"], "path": ["uservehicle"] }
+      }
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+  statsGetDealerCount:
+    handler: lambda/handlers/stats.getDealerCount
+    events:
+      - http:
+          path: stats/getdealercount
+          method: get
+  statsGetClientCount:
+    handler: lambda/handlers/stats.getClientCount
+    events:
+      - http:
+          path: stats/getclientcount
+          method: get
+  statsGetVehicleCount:
+    handler: lambda/handlers/stats.getVehicleCount
+    events:
+      - http:
+          path: stats/getvehiclecount
+          method: get
+  authLogin:
+    handler: lambda/handlers/auth.login
+    events:
+      - http:
+          path: auth/login
+          method: post
+  authRegister:
+    handler: lambda/handlers/auth.register
+    events:
+      - http:
+          path: auth/register
+          method: post
+  vehiclertodata:
+    handler: lambda/handlers/vehiclertodata.handler
+    events:
+      - http:
+          path: vehiclertodata/{vehicle_number}
+          method: get
+  adminData:
+    handler: lambda/handlers/adminData.handler
+    events:
+      - http:
+          path: admindata/{admin_id}
+          method: get
+  clientData:
+    handler: lambda/handlers/clientData.handler
+    events:
+      - http:
+          path: clientdata/{client_id}
+          method: get
+  driverData:
+    handler: lambda/handlers/driverData.handler
+    events:
+      - http:
+          path: driverdata
+          method: post
+  fastagData:
+    handler: lambda/handlers/fastagData.handler
+    events:
+      - http:
+          path: fastagdata
+          method: post
+  vehicleChallan:
+    handler: lambda/handlers/vehicleChallan.handler
+    events:
+      - http:
+          path: vehiclechallan
+          method: post
+  vehicleData:
+    handler: lambda/handlers/vehicleData.handler
+    events:
+      - http:
+          path: vehicledata/all
+          method: get
+  userVehicleList:
+    handler: lambda/handlers/userVehicleList.handler
+    events:
+      - http:
+          path: uservehicle
+          method: get
+  getVehicleByNumber:
+    handler: lambda/handlers/getVehicleByNumber.handler
+    events:
+      - http:
+          path: getulipdata/getVehicleByNumber
+          method: get
+  registerVehicle:
+    handler: lambda/handlers/registerVehicle.handler
+    events:
+      - http:
+          path: uservehicle/register
+          method: post
+service: vehicle-api
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    PG_USER: ${env:PG_USER}
+    PG_PASSWORD: ${env:PG_PASSWORD}
+    PG_DATABASE: ${env:PG_DATABASE}
+    PG_HOST: ${env:PG_HOST}
+    PG_PORT: ${env:PG_PORT}
+    PG_SSL: ${env:PG_SSL}
+    MONGO_URI: ${env:MONGO_URI}
+    ULIP_DRIVER_DATA_URL: ${env:ULIP_DRIVER_DATA_URL}
+    ULIP_FASTAG_DATA_URL: ${env:ULIP_FASTAG_DATA_URL}
+    ULIP_USERNAME: ${env:ULIP_USERNAME}
+    ULIP_PASSWORD: ${env:ULIP_PASSWORD}
+    ULIP_CLIENT_ID: ${env:ULIP_CLIENT_ID}
+    ULIP_CLIENT_SECRET: ${env:ULIP_CLIENT_SECRET}
+    EMAIL_ENCRYPTION_KEY: ${env:EMAIL_ENCRYPTION_KEY}
+functions:
+  getVehicleByNumber:
+    handler: lambda/handlers/getVehicleByNumber.handler
+    events:
+      - http:
+          path: getulipdata/getVehicleByNumber
+          method: get
+  vehiclertodata:
+    handler: lambda/handlers/vehiclertodata.handler
+    events:
+      - http:
+          path: vehiclertodata/{vehicle_number}
+          method: get
+  adminData:
+    handler: lambda/handlers/adminData.handler
+    events:
+      - http:
+          path: admindata/{admin_id}
+          method: get
+  clientData:
+    handler: lambda/handlers/clientData.handler
+    events:
+      - http:
+          path: clientdata/{client_id}
+          method: get
+  trackVehicle:
+    handler: lambda/handlers/trackVehicle.trackVehicle
+    events:
+      - http:
+          path: trackvehicle
+          method: get
