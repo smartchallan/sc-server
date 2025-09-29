@@ -1,6 +1,18 @@
 // services/adminDataService.js
+
 module.exports = async function fetchAdminData(models, adminId) {
   const { User, UserMeta, UserVehicle } = models;
+
+  // Fetch admin user and meta
+  const admin = await User.findOne({
+    where: { id: adminId, role: 'admin' },
+    attributes: { exclude: ['password'] },
+    include: [{
+      model: UserMeta,
+      as: 'meta',
+      required: false
+    }]
+  });
 
   // Fetch all dealers for the admin, include meta info
   const dealers = await User.findAll({
@@ -9,7 +21,6 @@ module.exports = async function fetchAdminData(models, adminId) {
     include: [{
       model: UserMeta,
       as: 'meta',
-      attributes: ['country', 'state', 'city'],
       required: false
     }]
   });
@@ -21,7 +32,6 @@ module.exports = async function fetchAdminData(models, adminId) {
     include: [{
       model: UserMeta,
       as: 'meta',
-      attributes: ['country', 'state', 'city'],
       required: false
     }]
   });
@@ -33,12 +43,14 @@ module.exports = async function fetchAdminData(models, adminId) {
 
   // Logging for audit
   console.table([
+    { type: 'admin', found: !!admin },
     { type: 'dealers', count: dealers.length },
     { type: 'clients', count: clients.length },
     { type: 'vehicles', count: vehicles.length }
   ]);
 
   return {
+    admin,
     dealers,
     clients,
     vehicles

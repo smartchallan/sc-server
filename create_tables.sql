@@ -3,13 +3,14 @@
 -- Table: di_user
 CREATE TABLE IF NOT EXISTS di_user (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CHECK (role IN ('admin', 'dealer', 'client', 'team'))
+    CHECK (role IN ('superuser', 'admin', 'dealer', 'client', 'team'))
 );
 
 -- Table: di_user_meta
@@ -172,5 +173,4 @@ CREATE TABLE user_vehicle_rto_data (
     temp_permit_type VARCHAR(50),
     temp_permit_valid_from VARCHAR(20),
     temp_permit_valid_upto VARCHAR(20)
-);
 );

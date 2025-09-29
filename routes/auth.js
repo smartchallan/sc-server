@@ -4,6 +4,8 @@ const authController = require('../controllers/authController');
 const { registerUser } = require('../services/authService');
 63*
 router.post('/login', authController.login);
+const bcrypt = require('bcryptjs');
+
 router.post('/register', async (req, res) => {
     console.log('inside register user');
     try {
@@ -38,6 +40,10 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ error: 'admin_id, dealer_id, and client_id are required for team registration.' });
         }
 
+    // Hash password before registration, trim spaces
+    const cleanPassword = password ? password.trim() : '';
+    const hashedPassword = bcrypt.hashSync(cleanPassword, 10);
+
         const userData = {
             userType,
             name,
@@ -57,12 +63,11 @@ router.post('/register', async (req, res) => {
         if (userType === 'dealer') {
             userData.admin_id = req.body.admin_id;
         }
-         if (userType === 'client') {
+        if (userType === 'client') {
             userData.admin_id = req.body.admin_id;
         }
-        console.table('register user data is' + userData);
+        console.table('register user data is' + JSON.stringify(userData));
         const user = await registerUser(userData);
-        
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (err) {
         res.status(500).json({ error: err.message });

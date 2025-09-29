@@ -1,6 +1,7 @@
 // const User = require('../models/user'); // Adjust path/casing as needed
 const UserModel = require('../models/user');
 const UserMetaModel = require('../models/user_meta');
+const bcrypt = require('bcryptjs');
 const { Sequelize } = require('sequelize');
 const sequelize = new Sequelize(
   process.env.PG_DATABASE || 'driveinnovate',
@@ -27,6 +28,7 @@ async function loginUser(email, password) {
     // if (typeof User.findOne === 'function') {
     //     try {
     const user = await User.findOne({ where: { email: email } });
+    console.log('in user login service', user );
     //     } catch (e) {
     //         // If error, try Mongoose style
     //         user = await User.findOne({ email });
@@ -39,15 +41,19 @@ async function loginUser(email, password) {
     //     return null;
     // }
 
-    if (!user || user.active === false) {
+    if (!user || user.status === false) {
         console.table([{ error: 'Invalid credentials or inactive user.' }]);
         return null;
     }
 
     const userObj = user.toJSON ? user.toJSON() : user;
 
-    const isPasswordValid = password === userObj.password;
 
+    // Compare hashed password, trim spaces
+    const cleanPassword = password ? password.trim() : '';
+    console.log('Login password:', `"${cleanPassword}"`);
+    console.log('DB hash:', `"${userObj.password}"`);
+    const isPasswordValid = bcrypt.compareSync(cleanPassword, userObj.password);
     if (!isPasswordValid) {
         console.table([{ error: 'Invalid credentials.' }]);
         return null;
@@ -69,12 +75,16 @@ async function loginUser(email, password) {
 
 async function registerUser(data) {
     console.log('Registering user:', data);
-    // Split data for User and UserMeta tables
+
+    // Hash password before saving, trim spaces
+    const cleanPassword = data.password ? data.password.trim() : '';
+    const hashedPassword = bcrypt.hashSync(cleanPassword, 10);
+    console.log('Registering user with password:', `"${cleanPassword}"`);
+    console.log('Generated hash:', `"${hashedPassword}"`);
     const userData = {
         name: data.name,
         email: data.email,
-        
-        password: data.password,
+        password: hashedPassword,
         role: data.userType,
         dealer_id: data.dealer_id || null,
         client_id: data.client_id || null,

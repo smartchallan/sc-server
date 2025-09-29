@@ -100,6 +100,19 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/driveinnova
 // Sequelize models (already initialized above)
 // (User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData already initialized above)
 
+// UserBilling model
+const UserBillingModel = require('./models/user_billing');
+const UserBilling = UserBillingModel(sequelize);
+
+// Add UserBilling to models object
+models.UserBilling = UserBilling;
+
+// UserBillingSetting route
+const userBillingSettingRouter = require('./routes/userBillingSetting')(models);
+
+// UserProfileService route
+const userProfileServiceRouter = require('./routes/userProfileService')(models);
+
 // Helper: Encrypt PII
 function encryptPII(data) {
   // Example: hash email, phone, address
@@ -116,10 +129,17 @@ app.use((req, res, next) => {
 });
 
 
-app.use('/trackvehicle', vehicleDataRouter);
+// Endpoints
 app.use('/auth', authRouter);
+
+app.use('/trackvehicle', vehicleDataRouter);
+
 app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
+
+app.use('/', userBillingSettingRouter);
+
+app.use('/', userProfileServiceRouter);
 
 
 
