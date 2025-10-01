@@ -2,6 +2,7 @@ const axios = require('axios');
 require('dotenv').config();
 
 async function ulipLogin() {
+  console.log('chkpoint 5');
   const url = process.env.ULIP_LOGIN_URL;
   const payload = {
     username: process.env.ULIP_USERNAME,
@@ -16,6 +17,7 @@ async function ulipLogin() {
 }
 
 async function getChallanDetails(vehicleNumber) {
+  console.log('chkpoint 3');
   const token = await ulipLogin();
   const url = process.env.ULIP_CHALLAN_DETAILS_URL;
   const headers = {
