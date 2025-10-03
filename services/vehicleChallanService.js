@@ -10,6 +10,7 @@ async function ulipLogin() {
   };
   const headers = { 'Content-Type': 'application/json' };
   
+  console.log('chkpoint 5A', url, payload, headers);
   const response = await axios.post(url, payload, { headers });
   console.log('chkpoint 6' , response.data.response.id);
   return response.data.response.id;
