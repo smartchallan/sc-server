@@ -154,10 +154,10 @@ app.use('/getvehiclertodata', vehicleRTORouter);
 app.use('/getvehicleechallandata', vehicleEChallanRouter);
 
 //route to get data from SARTHI services
-app.use('/driverdata', driverDataRouter);
+app.use('/getdriverdata', driverDataRouter);
 
 //route to get data from FASTAG services
-app.use('/vehiclefastagdata', fastagDataRouter);
+app.use('/getvehiclefastagdata', fastagDataRouter);
 
 
 // app.use('/getulipdata', vehicleUlipRouter);
