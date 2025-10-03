@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const convert = require('xml-js');
 const vehicleChallanService = require('../services/vehicleChallanService');
 
 // POST: /vehiclechallan
@@ -11,7 +12,13 @@ router.post('/', async (req, res) => {
     }
     console.log('chkpoint 1');
     const challanDetails = await vehicleChallanService.getChallanDetails(vehicleNumber);
-    res.json(challanDetails);
+
+    const jsonResult = convert.xml2json(challanDetails, {
+        compact: true,
+        spaces: 2
+    });
+
+    res.json(jsonResult);
   } catch (error) {
     console.log('chkpoint 2');
     res.status(500).json({ error: error.message });
