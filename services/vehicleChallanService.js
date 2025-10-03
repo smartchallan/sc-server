@@ -9,7 +9,7 @@ async function ulipLogin() {
     password: process.env.ULIP_PASSWORD,
   };
   const headers = { 'Content-Type': 'application/json' };
-  console.log('chkpoint 7', payload);
+  
   const response = await axios.post(url, payload, { headers });
   console.log('chkpoint 6' , response.data.response.id);
   return response.data.response.id;
@@ -23,7 +23,10 @@ async function getChallanDetails(vehicleNumber) {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
+  console.log('chkpoint 7', url, token, vehicleNumber, headers);
+
   const response = await axios.post(url, { vehicleNumber }, { headers });
+  console.log('chkpoint 8', response.data);
   return response.data;
 }
 
