@@ -6,23 +6,25 @@ async function ulipLogin() {
   const payload = {
     username: process.env.ULIP_USERNAME,
     password: process.env.ULIP_PASSWORD,
-    client_id: process.env.ULIP_CLIENT_ID,
-    client_secret: process.env.ULIP_CLIENT_SECRET,
-    grant_type: 'password',
   };
   const headers = { 'Content-Type': 'application/json' };
   const response = await axios.post(url, payload, { headers });
   return response.data.access_token;
 }
 
-async function getDriverData(driverId) {
+async function getDriverData(driverId, dob) {
   const token = await ulipLogin();
   const url = process.env.ULIP_DRIVER_DATA_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
-  const response = await axios.post(url, { driverId }, { headers });
+  const data = {
+    "dlnumber": driverId,
+    "dob": dob
+  }
+  const response = await axios.post(url, { data }, { headers });
+  console.log('Driver Data Response:', response.data);
   return response.data;
 }
 

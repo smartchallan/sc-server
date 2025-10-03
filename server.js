@@ -62,7 +62,8 @@ const dealersRouter = require('./routes/dealers');
 
 const vehicleDataRouter = require('./routes/vehicleData');
 const vehicleUlipRouter = require('./routes/vehicle');
-const vehicleChallanRouter = require('./routes/vehicleChallan');
+const vehicleRTORouter = require('./routes/vehicleRTO');
+const vehicleEChallanRouter = require('./routes/vehicleEChallan');
 const driverDataRouter = require('./routes/driverData');
 const fastagDataRouter = require('./routes/fastagData');
 const authRouter = require('./routes/auth');
@@ -144,14 +145,27 @@ app.use('/', userProfileServiceRouter);
 
 
 // ULIP Services
-app.use('/vehiclertodata', userVehicleRtoDataRouter);
-app.use('/vehiclechallandata', vehicleChallanRouter);
+// app.use('/vehiclertodata', userVehicleRtoDataRouter);
+
+//route to get data from VAHAN services
+app.use('/getvehiclertodata', vehicleRTORouter);
+
+//route to get data from E-CHALLAN services
+app.use('/getvehicleechallandata', vehicleEChallanRouter);
+
+//route to get data from SARTHI services
 app.use('/driverdata', driverDataRouter);
+
+//route to get data from FASTAG services
 app.use('/vehiclefastagdata', fastagDataRouter);
-app.use('/getulipdata', vehicleUlipRouter);
+
+
+// app.use('/getulipdata', vehicleUlipRouter);
 // ULIP Services end
 
 app.use('/uservehicle', userVehicleRouter);
+
+// route to store and get vehicle RTO data from database
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);
 app.use('/clientdata', clientDataRouter);

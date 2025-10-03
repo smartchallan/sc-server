@@ -1,4 +1,4 @@
-const vehicleChallanService = require('../../services/vehicleChallanService');
+const vehicleChallanService = require('../../services/vehicleRTOService');
 exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
