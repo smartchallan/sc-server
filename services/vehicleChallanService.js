@@ -11,8 +11,8 @@ async function ulipLogin() {
   const headers = { 'Content-Type': 'application/json' };
   console.log('chkpoint 7', payload);
   const response = await axios.post(url, payload, { headers });
-  console.log('chkpoint 6' , response.data);
-  return response.data.access_token;
+  console.log('chkpoint 6' , response.data.response.id);
+  return response.data.response.id;
 }
 
 async function getChallanDetails(vehicleNumber) {
