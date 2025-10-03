@@ -26,9 +26,9 @@ async function getChallanDetails(vehicleNumber) {
   const data = { vehicleNumber: vehicleNumber };
   console.log('chkpoint 7', url, data, headers);
 
-  const response = await axios.post(url, data, { headers });
-  console.log('chkpoint 8', response);
-  return response.data;
+  const responseVahan = await axios.post(url, data, { headers });
+  console.log('chkpoint 8', responseVahan);
+  return responseVahan;
 }
 
 module.exports = {
