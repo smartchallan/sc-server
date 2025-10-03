@@ -23,7 +23,7 @@ async function getChallanDetails(vehicleNumber) {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
-  const data = { vehicleNumber: vehicleNumber };
+  const data = { vehiclenumber: vehicleNumber };
   console.log('chkpoint 7', url, data, headers);
 
   const responseVahan = await axios.post(url, data, { headers });
