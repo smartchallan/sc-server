@@ -7,11 +7,9 @@ async function ulipLogin() {
   const payload = {
     username: process.env.ULIP_USERNAME,
     password: process.env.ULIP_PASSWORD,
-    // client_id: process.env.ULIP_CLIENT_ID,
-    // client_secret: process.env.ULIP_CLIENT_SECRET,
-    grant_type: 'password',
   };
   const headers = { 'Content-Type': 'application/json' };
+  console.log('chkpoint 7', payload);
   const response = await axios.post(url, payload, { headers });
   console.log('chkpoint 6' , response.data);
   return response.data.access_token;
