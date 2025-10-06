@@ -71,7 +71,9 @@ const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 
 // ...existing code...
 
+
 const app = express();
+app.locals.models = models;
 app.use(express.json());
 app.use(helmet());
 

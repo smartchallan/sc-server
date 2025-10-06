@@ -28,4 +28,31 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+// GET: /vehicleEChallan?clientID=...&vehicleNumber=...
+router.get('/', async (req, res) => {
+  try {
+    const { clientId, vehicleNumber } = req.query;
+    if (!clientId) {
+      return res.status(400).json({ error: 'clientId is required' });
+    }
+
+    // Access VehicleChallan model from app locals
+    const VehicleChallan = req.app.locals.models?.VehicleChallan;
+    if (!VehicleChallan) {
+      return res.status(500).json({ error: 'VehicleChallan model not found' });
+    }
+
+    let where = { client_id: clientId };
+    if (vehicleNumber) {
+      where.vehicle_number = vehicleNumber;
+    }
+
+    const results = await VehicleChallan.findAll({ where });
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

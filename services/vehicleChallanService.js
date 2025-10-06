@@ -53,12 +53,25 @@ async function getChallanDetails(vehicleNumber, clientID) {
   const pendingData = response.data.response[0].response.data.Pending_data;
   const disposedData = response.data.response[0].response.data.Disposed_data;
   // Save to di_vehicle_challans
-  await VehicleChallan.create({
-    client_id: clientID,
-    vehicle_number: vehicleNumber,
-    pending_data: pendingData,
-    disposed_data: disposedData
+  const existing = await VehicleChallan.findOne({
+    where: { client_id: clientID, vehicle_number: vehicleNumber }
   });
+  if (existing) {
+    await existing.update({
+      pending_data: pendingData,
+      disposed_data: disposedData,
+      updated_at: new Date()
+    });
+  } else {
+    await VehicleChallan.create({
+      client_id: clientID,
+      vehicle_number: vehicleNumber,
+      pending_data: pendingData,
+      disposed_data: disposedData,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+  }
   console.log('vehicle challan data pending', pendingData);
   console.log('vehicle challan data disposed', disposedData);
   return response.data.response[0].response.data;

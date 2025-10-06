@@ -61,11 +61,23 @@ async function getRTODetails(vehicleNumber, clientID) {
   console.log('chkpoint 8', jsonResult);
 
   // Save to di_vehicle_rto_data
-  await VehicleRTOData.create({
-    vehicle_number: vehicleNumber,
-    client_id: clientID,
-    rto_data: jsonResult
+  const existing = await VehicleRTOData.findOne({
+    where: { vehicle_number: vehicleNumber, client_id: clientID }
   });
+  if (existing) {
+    await existing.update({
+      rto_data: jsonResult,
+      updated_at: new Date()
+    });
+  } else {
+    await VehicleRTOData.create({
+      vehicle_number: vehicleNumber,
+      client_id: clientID,
+      rto_data: jsonResult,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+  }
 
   return jsonResult;
 }
