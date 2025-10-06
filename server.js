@@ -56,6 +56,8 @@ const clientDataRouter = require('./routes/clientData')(models);
 
 const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
+
+
 // Mongoose model
 const VehicleData = require('./mongoose/vehicle_data');
 const dealersRouter = require('./routes/dealers');
@@ -84,18 +86,6 @@ sequelize.authenticate()
   })
   .catch(err => {
     console.error('Unable to connect to PostgreSQL:', err);
-  });
-
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/driveinnovate', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => {
-    console.log('MongoDB connection established successfully.');
-  })
-  .catch(err => {
-    console.error('Unable to connect to MongoDB:', err);
   });
 
 // Sequelize models (already initialized above)
@@ -130,22 +120,25 @@ app.use((req, res, next) => {
 });
 
 
-// Endpoints
+// Application Endpoints
 app.use('/auth', authRouter);
 
-app.use('/trackvehicle', vehicleDataRouter);
 
+
+
+
+
+
+
+// app.use('/trackvehicle', vehicleDataRouter);
 app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
-
 app.use('/', userBillingSettingRouter);
-
 app.use('/', userProfileServiceRouter);
 
 
 
 // ULIP Services
-// app.use('/vehiclertodata', userVehicleRtoDataRouter);
 
 //route to get data from VAHAN services
 app.use('/getvehiclertodata', vehicleRTORouter);
