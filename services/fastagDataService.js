@@ -6,13 +6,11 @@ async function ulipLogin() {
   const payload = {
     username: process.env.ULIP_USERNAME,
     password: process.env.ULIP_PASSWORD,
-    client_id: process.env.ULIP_CLIENT_ID,
-    client_secret: process.env.ULIP_CLIENT_SECRET,
-    grant_type: 'password',
   };
   const headers = { 'Content-Type': 'application/json' };
   const response = await axios.post(url, payload, { headers });
-  return response.data.access_token;
+  console.log('chkpoint 6' , response.data.response.id);
+  return response.data.response.id;
 }
 
 async function getFastagData(fastagNumber) {
@@ -22,8 +20,12 @@ async function getFastagData(fastagNumber) {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
-  const response = await axios.post(url, { fastagNumber }, { headers });
-  return response.data;
+    const data = { 'vehiclenumber': vehicleNumber };
+    console.log('chkpoint 7', url, data, headers);
+  
+    const response = await axios.post(url, data, { headers });
+    console.log('chkpoint 8', response);
+    return response;
 }
 
 module.exports = {
