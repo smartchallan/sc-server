@@ -13,14 +13,14 @@ async function ulipLogin() {
   return response.data.response.id;
 }
 
-async function getFastagData(fastagNumber) {
+async function getFastagData(vehiclenumber) {
   const token = await ulipLogin();
   const url = process.env.ULIP_FASTAG_DATA_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
-    const data = { 'vehiclenumber': vehicleNumber };
+    const data = { 'vehiclenumber': vehiclenumber };
     console.log('chkpoint 7', url, data, headers);
   
     const response = await axios.post(url, data, { headers });
