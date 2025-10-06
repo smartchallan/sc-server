@@ -1,3 +1,12 @@
+// Router requires (add before app.use calls)
+const authRouter = require('./routes/auth');
+const dealersRouter = require('./routes/dealers');
+const countRouter = require('./routes/count');
+// ...existing code...
+const vehicleRTORouter = require('./routes/vehicleRTO');
+const vehicleEChallanRouter = require('./routes/vehicleEChallan');
+const driverDataRouter = require('./routes/driverData');
+const fastagDataRouter = require('./routes/fastagData');
 
 require('dotenv').config();
 const express = require('express');
@@ -53,33 +62,16 @@ const VehicleRTODataModel = require('./models/vehicle_rto_data');
 const VehicleRTOData = VehicleRTODataModel(sequelize);
 const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData };
 
-// Endpoint to get vehicle RTO data from database
-app.use('/', vehicleRTODataRouter);
-const adminDataRouter = require('./routes/adminData')(models);
-const clientDataRouter = require('./routes/clientData')(models);
-
+// Routers that depend on models (must be initialized after models)
 const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
+const adminDataRouter = require('./routes/adminData')(models);
+const clientDataRouter = require('./routes/clientData')(models);
+const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 
-
-// Mongoose model
-const VehicleData = require('./mongoose/vehicle_data');
-const dealersRouter = require('./routes/dealers');
-
-const vehicleDataRouter = require('./routes/vehicleData');
-const vehicleUlipRouter = require('./routes/vehicle');
-const vehicleRTORouter = require('./routes/vehicleRTO');
-const vehicleEChallanRouter = require('./routes/vehicleEChallan');
-const driverDataRouter = require('./routes/driverData');
-const fastagDataRouter = require('./routes/fastagData');
-const authRouter = require('./routes/auth');
-const countRouter = require('./routes/count');
+// ...existing code...
 
 const app = express();
-
-// Allow CORS from anywhere
-app.use(cors());
-
 app.use(express.json());
 app.use(helmet());
 
@@ -139,7 +131,7 @@ app.use('/', userProfileServiceRouter);
 
 //route to get data from VAHAN services
 app.use('/getvehiclertodata', vehicleRTORouter);
-const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
+// ...existing code...
 
 //route to get data from E-CHALLAN services
 app.use('/getvehicleechallandata', vehicleEChallanRouter);
