@@ -16,7 +16,9 @@ async function ulipLogin() {
   return response.data.response.id;
 }
 
-async function getRTODetails(vehicleNumber) {
+const xml2js = require('xml2js');
+
+async function getRTODetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
   const token = await ulipLogin();
   const url = process.env.ULIP_VAHAN_DETAILS_URL;
@@ -28,8 +30,14 @@ async function getRTODetails(vehicleNumber) {
   console.log('chkpoint 7', url, data, headers);
 
   const response = await axios.post(url, data, { headers });
-  console.log('chkpoint 8', response.data.response[0].response);
-  return response;
+  const xml = response.data.response[0].response;
+  // Convert XML to JSON
+  let jsonResult;
+  await xml2js.parseStringPromise(xml, { explicitArray: false })
+    .then(result => { jsonResult = result; })
+    .catch(err => { throw new Error('Failed to parse XML response: ' + err.message); });
+  console.log('chkpoint 8', jsonResult);
+  return jsonResult;
 }
 
 module.exports = {

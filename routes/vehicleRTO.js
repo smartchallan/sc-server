@@ -6,12 +6,12 @@ const vehicleRTOService = require('../services/vehicleRTOService');
 // POST: /vehiclechallan
 router.post('/', async (req, res) => {
   try {
-    const { vehicleNumber } = req.body;
+    const { vehicleNumber, clientID } = req.body;
     if (!vehicleNumber) {
       return res.status(400).json({ error: 'vehicleNumber is required' });
     }
     console.log('chkpoint 1');
-    const rtoDetails = await vehicleRTOService.getRTODetails(vehicleNumber);
+    const rtoDetails = await vehicleRTOService.getRTODetails(vehicleNumber, clientID);
 
     // const jsonResult = convert.xml2json(challanDetails, {
     //     compact: true,
