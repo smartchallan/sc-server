@@ -123,13 +123,6 @@ app.use((req, res, next) => {
 // Application Endpoints
 app.use('/auth', authRouter);
 
-
-
-
-
-
-
-
 // app.use('/trackvehicle', vehicleDataRouter);
 app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
