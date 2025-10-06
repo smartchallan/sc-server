@@ -30,7 +30,7 @@ async function getChallanDetails(vehicleNumber) {
   const response = await axios.post(url, data, { headers });
   console.log('vehicle challan data pending', response.data.response[0].response.data.Pending_data);
   console.log('vehicle challan data disposed', response.data.response[0].response.data.Disposed_data);
-  return response;
+  return response.data.response[0].response.data;
 }
 
 module.exports = {
