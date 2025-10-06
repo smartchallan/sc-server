@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
     }
     
     if (!clientID) {
-      return res.status(400).json({ error: 'client idis required' });
+      return res.status(400).json({ error: 'client id is required' });
     }
     console.log('chkpoint 1');
     const rtoDetails = await vehicleRTOService.getRTODetails(vehicleNumber, clientID);

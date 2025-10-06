@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'vehicleNumber is required' });
     }
     if (!clientID) {
-      return res.status(400).json({ error: 'client idis required' });
+      return res.status(400).json({ error: 'client id is required' });
     }
     console.log('chkpoint 1');
     const challanDetails = await vehicleChallanService.getChallanDetails(vehicleNumber, clientID);

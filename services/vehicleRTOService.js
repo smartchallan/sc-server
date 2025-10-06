@@ -18,6 +18,28 @@ async function ulipLogin() {
 
 const xml2js = require('xml2js');
 
+// Import model
+const VehicleRTODataModel = require('../models/vehicle_rto_data');
+const { Sequelize } = require('sequelize');
+const sequelize = new Sequelize(
+  process.env.PG_DATABASE,
+  process.env.PG_USER,
+  process.env.PG_PASSWORD,
+  {
+    host: process.env.PG_HOST,
+    port: process.env.PG_PORT,
+    dialect: 'mysql',
+    logging: false,
+    dialectOptions: process.env.PG_SSL === 'false' ? {
+      ssl: {
+        require: false,
+        rejectUnauthorized: false,
+      }
+    } : {},
+  }
+);
+const VehicleRTOData = VehicleRTODataModel(sequelize);
+
 async function getRTODetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
   const token = await ulipLogin();
@@ -37,6 +59,14 @@ async function getRTODetails(vehicleNumber, clientID) {
     .then(result => { jsonResult = result; })
     .catch(err => { throw new Error('Failed to parse XML response: ' + err.message); });
   console.log('chkpoint 8', jsonResult);
+
+  // Save to di_vehicle_rto_data
+  await VehicleRTOData.create({
+    vehicle_number: vehicleNumber,
+    client_id: clientID,
+    rto_data: jsonResult
+  });
+
   return jsonResult;
 }
 
