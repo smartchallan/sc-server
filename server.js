@@ -49,8 +49,12 @@ if (!User.associations.meta) {
   UserMeta.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 }
 
-// Pass initialized models to adminDataRouter
-const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData };
+const VehicleRTODataModel = require('./models/vehicle_rto_data');
+const VehicleRTOData = VehicleRTODataModel(sequelize);
+const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData };
+
+// Endpoint to get vehicle RTO data from database
+app.use('/', vehicleRTODataRouter);
 const adminDataRouter = require('./routes/adminData')(models);
 const clientDataRouter = require('./routes/clientData')(models);
 
@@ -135,6 +139,7 @@ app.use('/', userProfileServiceRouter);
 
 //route to get data from VAHAN services
 app.use('/getvehiclertodata', vehicleRTORouter);
+const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 
 //route to get data from E-CHALLAN services
 app.use('/getvehicleechallandata', vehicleEChallanRouter);
