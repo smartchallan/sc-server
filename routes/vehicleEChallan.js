@@ -6,12 +6,12 @@ const vehicleChallanService = require('../services/vehicleChallanService');
 // POST: /vehiclechallan
 router.post('/', async (req, res) => {
   try {
-    const { vehicleNumber } = req.body;
+    const { vehicleNumber, clientID } = req.body;
     if (!vehicleNumber) {
       return res.status(400).json({ error: 'vehicleNumber is required' });
     }
     console.log('chkpoint 1');
-    const challanDetails = await vehicleChallanService.getChallanDetails(vehicleNumber);
+    const challanDetails = await vehicleChallanService.getChallanDetails(vehicleNumber, clientID);
 
     // const jsonResult = convert.xml2json(challanDetails, {
     //     compact: true,

@@ -16,7 +16,29 @@ async function ulipLogin() {
   return response.data.response.id;
 }
 
-async function getChallanDetails(vehicleNumber) {
+// Import model
+const VehicleChallanModel = require('../models/vehicle_challan');
+const { Sequelize } = require('sequelize');
+const sequelize = new Sequelize(
+  process.env.PG_DATABASE,
+  process.env.PG_USER,
+  process.env.PG_PASSWORD,
+  {
+    host: process.env.PG_HOST,
+    port: process.env.PG_PORT,
+    dialect: 'mysql',
+    logging: false,
+    dialectOptions: process.env.PG_SSL === 'false' ? {
+      ssl: {
+        require: false,
+        rejectUnauthorized: false,
+      }
+    } : {},
+  }
+);
+const VehicleChallan = VehicleChallanModel(sequelize);
+
+async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
   const token = await ulipLogin();
   const url = process.env.ULIP_ECHALLAN_DETAILS_URL;
@@ -28,8 +50,17 @@ async function getChallanDetails(vehicleNumber) {
   console.log('chkpoint 7', url, data, headers);
 
   const response = await axios.post(url, data, { headers });
-  console.log('vehicle challan data pending', response.data.response[0].response.data.Pending_data);
-  console.log('vehicle challan data disposed', response.data.response[0].response.data.Disposed_data);
+  const pendingData = response.data.response[0].response.data.Pending_data;
+  const disposedData = response.data.response[0].response.data.Disposed_data;
+  // Save to di_vehicle_challans
+  await VehicleChallan.create({
+    client_id: clientID,
+    vehicle_number: vehicleNumber,
+    pending_data: pendingData,
+    disposed_data: disposedData
+  });
+  console.log('vehicle challan data pending', pendingData);
+  console.log('vehicle challan data disposed', disposedData);
   return response.data.response[0].response.data;
 }
 
