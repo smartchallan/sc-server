@@ -10,6 +10,10 @@ router.post('/', async (req, res) => {
     if (!vehicleNumber) {
       return res.status(400).json({ error: 'vehicleNumber is required' });
     }
+    
+    if (!clientID) {
+      return res.status(400).json({ error: 'client idis required' });
+    }
     console.log('chkpoint 1');
     const rtoDetails = await vehicleRTOService.getRTODetails(vehicleNumber, clientID);
 
