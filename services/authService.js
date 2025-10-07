@@ -3,6 +3,14 @@ const UserModel = require('../models/user');
 const UserMetaModel = require('../models/user_meta');
 const bcrypt = require('bcryptjs');
 const { Sequelize } = require('sequelize');
+require('dotenv').config();
+
+
+console.log('DB Config:', {
+  database: process.env.PG_DATABASE || 'driveinnovate',
+  user: process.env.PG_USER || 'root'});
+
+  
 const sequelize = new Sequelize(
   process.env.PG_DATABASE || 'driveinnovate',
   process.env.PG_USER || 'root',
