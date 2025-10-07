@@ -52,6 +52,7 @@ async function getRTODetails(vehicleNumber, clientID) {
   console.log('chkpoint 7', url, data, headers);
 
   const response = await axios.post(url, data, { headers });
+  console.log('chkpoint 7B', response);
   const xml = response.data.response[0].response;
   // Convert XML to JSON
   let jsonResult;

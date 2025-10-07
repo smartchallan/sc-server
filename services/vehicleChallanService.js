@@ -50,8 +50,9 @@ async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 7', url, data, headers);
 
   const response = await axios.post(url, data, { headers });
-  const pendingData = response.data.response[0].response.data.Pending_data;
-  const disposedData = response.data.response[0].response.data.Disposed_data;
+  console.log('chkpoint 7A', response);
+  const pendingData = response.data.response[0].response.data?.Pending_data;
+  const disposedData = response.data.response[0].response.data?.Disposed_data;
   // Save to di_vehicle_challans
   const existing = await VehicleChallan.findOne({
     where: { client_id: clientID, vehicle_number: vehicleNumber }
