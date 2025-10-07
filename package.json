@@ -5,11 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "pm2-start": "pm2 start server.js --name sc-server",
-    "pm2-stop": "pm2 stop sc-server",
-    "pm2-restart": "pm2 restart sc-server",
-    "pm2-list": "pm2 list"
+  "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -27,7 +23,6 @@
     "mysql2": "^3.14.3",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
-    "pm2": "^6.0.13",
     "sequelize": "^6.37.7",
     "xml-js": "^1.6.11",
     "xml2js": "^0.6.2"
