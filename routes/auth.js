@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { registerUser } = require('../services/authService');
-63*
+// require('dotenv').config();
+
 router.post('/login', authController.login);
 const bcrypt = require('bcryptjs');
 
