@@ -1,21 +1,5 @@
-// const User = require('../models/user'); // Adjust path/casing as needed
-const UserModel = require('../models/user');
-const UserMetaModel = require('../models/user_meta');
+const { User, UserMeta } = require('../models');
 const bcrypt = require('bcryptjs');
-const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize(
-  process.env.PG_DATABASE || 'driveinnovate',
-  process.env.PG_USER || 'root',
-  process.env.PG_PASSWORD || '',
-  {
-    host: process.env.PG_HOST || 'localhost',
-    port: process.env.PG_PORT || 3306, // Use MySQL default port
-    dialect: 'mysql', // Use MySQL dialect
-    logging: false
-  }
-);
-const User = UserModel(sequelize);
-const UserMeta = UserMetaModel(sequelize);
 
 async function loginUser(email, password) {
     console.table([{ email, password: '***' }]);
