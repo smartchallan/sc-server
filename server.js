@@ -17,6 +17,7 @@ if (!User.associations.meta) {
 const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData };
 
 const app = express();
+app.use(cors());
 app.locals.models = models;
 app.use(express.json());
 app.use(helmet());
