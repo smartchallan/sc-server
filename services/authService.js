@@ -8,9 +8,12 @@ require('dotenv').config();
 
 console.log('DB Config:', {
   database: process.env.PG_DATABASE || 'driveinnovate',
-  user: process.env.PG_USER || 'root'});
+  user: process.env.PG_USER || 'root',
+  host: process.env.PG_HOST || 'localhost',
+  port: process.env.PG_PORT || 5432
+});
 
-  
+
 const sequelize = new Sequelize(
   process.env.PG_DATABASE || 'driveinnovate',
   process.env.PG_USER || 'root',
