@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
@@ -36,6 +35,9 @@ app.use((req, res, next) => {
 });
 
 // Routers
+
+// Register update vehicle status route
+const updateVehicleRouter = require('./routes/updateVehicle')(models);
 const authRouter = require('./routes/auth');
 const dealersRouter = require('./routes/dealers');
 const countRouter = require('./routes/count');
@@ -57,6 +59,8 @@ app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
 app.use('/', userProfileServiceRouter);
+app.use('/updatevehicle', updateVehicleRouter);
+
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);

@@ -1,5 +1,4 @@
 const axios = require('axios');
-
 const ULIP_LOGIN_URL = process.env.ULIP_LOGIN_URL || 'https://www.ulip.dpiit.gov.in/ulip/v1.0.0/user/login';
 const ULIP_VAHAN_URL = process.env.ULIP_VAHAN_URL || 'https://www.ulip.dpiit.gov.in/ulip/v1.0.0/VAHAN/01';
 
@@ -31,4 +30,25 @@ async function getVehicleByNumber(vehicleNumber) {
   }
 }
 
-module.exports = { getVehicleByNumber };
+async function updateVehicleStatus(models, vehicle_id, status) {
+  if (!vehicle_id || !status) {
+    throw new Error('vehicle_id and status are required.');
+  }
+  if (!['active', 'inactive', 'delete'].includes(status)) {
+    throw new Error('status must be active, inactive, or delete.');
+  }
+  const { UserVehicle } = models;
+  const vehicle = await UserVehicle.findOne({ where: { id: vehicle_id } });
+  if (!vehicle) {
+    throw new Error('Vehicle not found.');
+  }
+  if (status === 'delete') {
+    await vehicle.destroy();
+    return { message: 'Vehicle deleted.' };
+  } else {
+    await vehicle.update({ status });
+    return { message: 'Vehicle status updated.', vehicle };
+  }
+}
+
+module.exports = { getVehicleByNumber, updateVehicleStatus};
