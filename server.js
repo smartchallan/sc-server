@@ -59,7 +59,7 @@ app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
 app.use('/', userProfileServiceRouter);
-app.use('/updatevehicle', updateVehicleRouter);
+app.use('/updatevehiclestatus', updateVehicleRouter);
 
 
 // ULIP Services
