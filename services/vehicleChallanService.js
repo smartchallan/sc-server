@@ -50,6 +50,7 @@ async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 7', url, data, headers);
 
   const response = await axios.post(url, data, { headers });
+  console.log('checkpoint 7B', response);
   console.log('chkpoint 7A', response.data.response[0].response.data);
   const pendingData = response.data.response[0].response.data?.Pending_data;
   const disposedData = response.data.response[0].response.data?.Disposed_data;
