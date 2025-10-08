@@ -6,7 +6,7 @@ const cors = require('cors');
 const consoleTable = require('console.table');
 const bcrypt = require('bcryptjs');
 
-const { sequelize, User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData } = require('./models');
+const { sequelize, User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData, VehicleChallan, UserBilling } = require('./models');
 
 // Setup association for User <-> UserMeta (if not already set)
 if (!User.associations.meta) {
@@ -14,14 +14,17 @@ if (!User.associations.meta) {
   UserMeta.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 }
 
-const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData };
+const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData, VehicleChallan, UserBilling };
 
 const app = express();
-app.use(cors());
+
 app.locals.models = models;
 app.use(express.json());
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 
 // Health check route for diagnostics
 app.get('/ping', (req, res) => res.send('pong'));

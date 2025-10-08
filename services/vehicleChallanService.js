@@ -2,7 +2,7 @@ const axios = require('axios');
 require('dotenv').config();
 
 async function ulipLogin() {
-  // console.log('chkpoint 5');
+  console.log('chkpoint 5');
   const url = process.env.ULIP_LOGIN_URL;
   const payload = {
     username: process.env.ULIP_USERNAME,
@@ -10,9 +10,9 @@ async function ulipLogin() {
   };
   const headers = { 'Content-Type': 'application/json' };
   
-  // console.log('chkpoint 5A', url, payload, headers);
+  console.log('chkpoint 5A', url, payload, headers);
   const response = await axios.post(url, payload, { headers });
-  // console.log('chkpoint 6' , response.data.response.id);
+  console.log('chkpoint 6' , response.data.response.id);
   return response.data.response.id;
 }
 

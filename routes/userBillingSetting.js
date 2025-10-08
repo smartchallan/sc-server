@@ -3,6 +3,7 @@ const router = express.Router();
 
 module.exports = (models) => {
   const { UserBilling } = models;
+  console.log('UserBilling model:', UserBilling);
 
   // POST /userbillingsetting
 
