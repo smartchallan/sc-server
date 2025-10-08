@@ -22,7 +22,7 @@ app.locals.models = models;
 app.use(express.json());
 app.use(helmet());
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'http://app.smartchallan.com'],
   credentials: true
 }));
 
