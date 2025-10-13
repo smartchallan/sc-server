@@ -42,11 +42,11 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   if (!vehicle) {
     throw new Error('Vehicle not found.');
   }
+  // Always update status field, including for delete
+  await vehicle.update({ status });
   if (status === 'delete') {
-    await vehicle.destroy();
-    return { message: 'Vehicle deleted.' };
+    return { message: 'Vehicle status set to delete.', vehicle };
   } else {
-    await vehicle.update({ status });
     return { message: 'Vehicle status updated.', vehicle };
   }
 }
