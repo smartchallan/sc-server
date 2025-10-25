@@ -4,45 +4,31 @@ const router = express.Router();
 const userVehicleService = require('../services/userVehicleService');
 
 module.exports = (UserVehicle) => {
+  const serviceFactory = userVehicleService;
+
   // Register a new vehicle
   router.post('/register', async (req, res) => {
-    const {
-      vehicle_number,
-      chasis_number,
-      engine_number,
-      client_id,
-      dealer_id,
-      admin_id
-    } = req.body;
+    const { vehicle_number, chasis_number, engine_number, client_id, dealer_id, admin_id } = req.body;
 
     // Logging request
     console.table([{ vehicle_number, chasis_number, engine_number, client_id, dealer_id, admin_id }]);
 
-    // Validate mandatory fields
-
-    if(!vehicle_number && !chasis_number && !engine_number ){
-        console.log('hell o');
-        return res.status(400).json({ error: 'At least one of vehicle_number, chasis_number, or engine_number is required.' });
-    }
-    if (!client_id || !dealer_id || !admin_id) {
-      return res.status(400).json({ error: 'client_id, dealer_id, and admin_id are required.' });
-    }
-
     try {
-      const vehicle = await UserVehicle.create({
-        vehicle_number,
-        chasis_number,
-        engine_number,
-        client_id,
-        dealer_id,
-        admin_id,
-        status: 'active'
-      });
+      const service = serviceFactory(UserVehicle);
+      const result = await service.registerVehicle(req.body);
 
-      // Logging response
-      console.table([vehicle.toJSON()]);
+      if (result && result.message === 'vehicle already registered') {
+        return res.status(400).json({ message: result.message });
+      }
 
-      res.status(201).json({ message: 'Vehicle registered successfully', vehicle });
+      if (result && result.vehicle) {
+        // Logging response
+        console.table([result.vehicle.toJSON ? result.vehicle.toJSON() : result.vehicle]);
+        return res.status(201).json(result);
+      }
+
+      // Fallback
+      return res.status(200).json(result);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -52,7 +38,7 @@ module.exports = (UserVehicle) => {
   router.get('/', async (req, res) => {
     try {
       const { admin_id, dealer_id, client_id } = req.query;
-      const service = userVehicleService(UserVehicle);
+      const service = serviceFactory(UserVehicle);
       const vehicles = await service.getUserVehicles({ admin_id, dealer_id, client_id });
       res.json({ vehicles });
     } catch (err) {

@@ -31,6 +31,7 @@ async function getVehicleByNumber(vehicleNumber) {
 }
 
 async function updateVehicleStatus(models, vehicle_id, status) {
+  console.log('Updating vehicle status:', { vehicle_id, status });
   if (!vehicle_id || !status) {
     throw new Error('vehicle_id and status are required.');
   }
@@ -42,10 +43,14 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   if (!vehicle) {
     throw new Error('Vehicle not found.');
   }
-  // Always update status field, including for delete
-  await vehicle.update({ status });
+  // Convert incoming 'delete' to 'deleted' for DB compatibility
+  const dbStatus = status === 'delete' ? 'deleted' : status;
+
+  // Always update status field
+  await vehicle.update({ status: dbStatus });
+
   if (status === 'delete') {
-    return { message: 'Vehicle status set to delete.', vehicle };
+    return { message: 'Vehicle status set to deleted.', vehicle };
   } else {
     return { message: 'Vehicle status updated.', vehicle };
   }
