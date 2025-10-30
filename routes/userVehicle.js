@@ -17,7 +17,10 @@ module.exports = (UserVehicle) => {
       const service = serviceFactory(UserVehicle);
       const result = await service.registerVehicle(req.body);
 
+      console.log('checkpoint 1');
+
       if (result && result.message === 'vehicle already registered') {
+        console.log('Vehicle registration failed:', result.message);
         return res.status(400).json({ message: result.message });
       }
 
