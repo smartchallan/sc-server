@@ -37,7 +37,7 @@ app.use((req, res, next) => {
 // Routers
 
 // Register update vehicle status route
-const  updateVehicleRouter = require('./routes/updateVehicle')(models);
+const updateVehicleRouter = require('./routes/updateVehicle')(models);
 const authRouter = require('./routes/auth');
 const dealersRouter = require('./routes/dealers');
 const countRouter = require('./routes/count');
