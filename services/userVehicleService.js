@@ -56,7 +56,7 @@ module.exports = (UserVehicle) => {
       });
       if (existing) {
         // Match user's requested message text (note: spelling preserved)
-        return { message: 'vehicle laready registered' };
+        return { message: 'vehicle already registered' };
       }
     }
 

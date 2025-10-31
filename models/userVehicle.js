@@ -15,6 +15,16 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('active', 'inactive', 'deleted'),
       allowNull: false,
       defaultValue: 'active'
+    },
+    rto_data: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    challan_data: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   }, {
     tableName: 'di_user_vehicle',

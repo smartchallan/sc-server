@@ -18,8 +18,9 @@ async function ulipLogin() {
 
 const xml2js = require('xml2js');
 
-// Import model
+// Import models
 const VehicleRTODataModel = require('../models/vehicle_rto_data');
+const UserVehicleModel = require('../models/userVehicle');
 const { Sequelize } = require('sequelize');
 const sequelize = new Sequelize(
   process.env.PG_DATABASE,
@@ -39,6 +40,7 @@ const sequelize = new Sequelize(
   }
 );
 const VehicleRTOData = VehicleRTODataModel(sequelize);
+const UserVehicle = UserVehicleModel(sequelize);
 
 async function getRTODetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
@@ -79,6 +81,17 @@ async function getRTODetails(vehicleNumber, clientID) {
       updated_at: new Date()
     });
   }
+
+  // Update di_user_vehicle table to mark rto_data as true when data is fetched successfully
+  await UserVehicle.update(
+    { rto_data: true, updated_at: new Date() },
+    { 
+      where: { 
+        vehicle_number: vehicleNumber,
+        client_id: clientID 
+      } 
+    }
+  );
 
   return jsonResult;
 }
