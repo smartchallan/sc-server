@@ -20,10 +20,14 @@ module.exports = (models) => {
 
       const result = await dealerDataService.getDealerData(models, dealer_id);
 
-      // Logging response
+      // Logging response summary
       console.table([{
         dealer_id,
-        clients_found: result.data ? result.data.length : 0,
+        dealer_name: result.dealer_info?.name || 'N/A',
+        total_clients: result.summary?.total_clients || 0,
+        total_vehicles: result.summary?.total_vehicles || 0,
+        total_rto_records: result.summary?.total_rto_records || 0,
+        total_challan_records: result.summary?.total_challan_records || 0,
         success: result.success
       }]);
 
