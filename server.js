@@ -7,10 +7,15 @@ const bcrypt = require('bcryptjs');
 
 const { sequelize, User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData, VehicleChallan, UserBilling } = require('./models');
 
-// Setup association for User <-> UserMeta (if not already set)
+// Setup associations (if not already set)
 if (!User.associations.meta) {
   User.hasOne(UserMeta, { foreignKey: 'user_id', as: 'meta' });
   UserMeta.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+}
+
+if (!User.associations.billing) {
+  User.hasOne(UserBilling, { foreignKey: 'user_id', as: 'billing' });
+  UserBilling.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 }
 
 const models = { User, UserMeta, UserVehicle, UserVehicles, UserSettings, UserVehicleRtoData, VehicleRTOData, VehicleChallan, UserBilling };
@@ -39,7 +44,6 @@ app.use((req, res, next) => {
 // Register update vehicle status route
 const updateVehicleRouter = require('./routes/updateVehicle')(models);
 const authRouter = require('./routes/auth');
-const dealersRouter = require('./routes/dealers');
 const countRouter = require('./routes/count');
 const vehicleRTORouter = require('./routes/vehicleRTO');
 const vehicleEChallanRouter = require('./routes/vehicleEChallan');
@@ -49,13 +53,13 @@ const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
 const adminDataRouter = require('./routes/adminData')(models);
 const clientDataRouter = require('./routes/clientData')(models);
+const dealerDataRouter = require('./routes/dealerData')(models);
 const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 const userBillingSettingRouter = require('./routes/userBillingSetting')(models);
 const userProfileServiceRouter = require('./routes/userProfileService')(models);
 
 // Application Endpoints
 app.use('/auth', authRouter);
-app.use('/dealers', dealersRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
 app.use('/', userProfileServiceRouter);
@@ -73,6 +77,7 @@ app.use('/uservehicle', userVehicleRouter);
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);
 app.use('/clientdata', clientDataRouter);
+app.use('/dealerdata', dealerDataRouter);
 
 // DB connection check
 sequelize.authenticate()
