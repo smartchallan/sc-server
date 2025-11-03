@@ -27,7 +27,7 @@ async function getFastagData(vehiclenumber) {
       const response = await axios.post(url, data, { headers });
       console.log('Fastag Response Status:', response.status);
       console.log('chkpoint 8', response.data.response[0].response);
-      return response;
+      return response.data; // Return only the data, not the entire response object
     } catch (error) {
       console.error('Fastag API Error:', error.response?.status, error.response?.data || error.message);
       throw error;
