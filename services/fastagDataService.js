@@ -23,9 +23,15 @@ async function getFastagData(vehiclenumber) {
     const data = { 'vehiclenumber': vehiclenumber };
     console.log('chkpoint 7', url, data, headers);
   
-    const response = await axios.post(url, data, { headers });
-    console.log('chkpoint 8', response.data.response[0].response);
-    return response;
+    try {
+      const response = await axios.post(url, data, { headers });
+      console.log('Fastag Response Status:', response.status);
+      console.log('chkpoint 8', response.data.response[0].response);
+      return response;
+    } catch (error) {
+      console.error('Fastag API Error:', error.response?.status, error.response?.data || error.message);
+      throw error;
+    }
 }
 
 module.exports = {
