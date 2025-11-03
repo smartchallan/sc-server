@@ -25,8 +25,16 @@ async function getDriverData(driverId, dob) {
     "dob": dob
   }
   console.log('Driver call:', url, data, headers);
-  const response = await axios.post(url, { data }, { headers });
-  console.log('Driver Data Response:', response);
+  
+  try {
+    const response = await axios.post(url, data, { headers });
+    console.log('Driver Data Response Status:', response.status);
+    console.log('Driver Data Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Driver API Error:', error.response?.status, error.response?.data || error.message);
+    throw error;
+  }
   return response.data;
 }
 
