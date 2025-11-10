@@ -66,6 +66,7 @@ const updateVehicleRouter = require('./routes/updateVehicle')(models);
 const authRouter = require('./routes/auth');
 const countRouter = require('./routes/count');
 const vehicleRTORouter = require('./routes/vehicleRTO');
+const vehicleRTOBatchRouter = require('./routes/vehicleRTOBatch');
 const vehicleEChallanRouter = require('./routes/vehicleEChallan');
 const driverDataRouter = require('./routes/driverData');
 const fastagDataRouter = require('./routes/fastagData');
@@ -87,6 +88,7 @@ app.use('/updatevehiclestatus', updateVehicleRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);
+app.use('/getvehiclertodata/batch', vehicleRTOBatchRouter);
 app.use('/getvehicleechallandata', vehicleEChallanRouter);
 app.use('/getdriverdata', driverDataRouter);
 app.use('/getvehiclefastagdata', fastagDataRouter);
