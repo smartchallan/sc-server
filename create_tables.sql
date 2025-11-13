@@ -174,3 +174,37 @@ CREATE TABLE user_vehicle_rto_data (
     temp_permit_valid_from VARCHAR(20),
     temp_permit_valid_upto VARCHAR(20)
 );
+
+-- Table: di_user_options
+CREATE TABLE IF NOT EXISTS di_user_options (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    user_role ENUM('admin', 'dealer', 'client') NOT NULL,
+    option_key VARCHAR(100) NOT NULL,
+    option_value TEXT,
+    FOREIGN KEY (user_id) REFERENCES di_user(id) ON DELETE CASCADE
+);
+
+-- Table: di_failed_records
+CREATE TABLE IF NOT EXISTS di_failed_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    user_role ENUM('admin', 'dealer', 'client') NOT NULL,
+    failed_request_name ENUM('rto_fetch', 'challan_fetch', 'driver_fetch', 'fastag_fetch') NOT NULL,
+    failed_request_data JSON NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'failed',
+    retry_count INT NOT NULL DEFAULT 0,
+    record_failed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    record_success_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES di_user(id) ON DELETE CASCADE
+);
+
+-- Table: di_scheduled_job_records
+CREATE TABLE IF NOT EXISTS di_scheduled_job_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_name VARCHAR(100) NOT NULL,
+    job_status VARCHAR(20),
+    job_started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    job_completed_at DATETIME,
+    job_duration INT
+);

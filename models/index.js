@@ -8,6 +8,9 @@ const UserVehicleRtoDataModel = require('./userVehicleRtoData');
 const VehicleRTODataModel = require('./vehicle_rto_data');
 const VehicleChallanModel = require('./vehicle_challan');
 const UserBillingModel = require('./user_billing');
+const DIUserOptions = require('./di_user_options');
+const DIFailedRecords = require('./di_failed_records');
+const DIScheduledJobRecords = require('./di_scheduled_job_records');
 
 require('dotenv').config();
 
@@ -29,6 +32,7 @@ const sequelize = new Sequelize(
   }
 );
 
+
 const User = UserModel(sequelize);
 const UserMeta = UserMetaModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
@@ -38,6 +42,9 @@ const UserVehicleRtoData = UserVehicleRtoDataModel(sequelize);
 const VehicleRTOData = VehicleRTODataModel(sequelize);
 const VehicleChallan = VehicleChallanModel(sequelize);
 const UserBilling = UserBillingModel(sequelize);
+const UserOptions = DIUserOptions;
+const FailedRecords = DIFailedRecords;
+const ScheduledJobRecords = DIScheduledJobRecords;
 
 module.exports = {
   sequelize,
@@ -50,4 +57,7 @@ module.exports = {
   VehicleRTOData,
   VehicleChallan,
   UserBilling,
+  UserOptions,
+  FailedRecords,
+  ScheduledJobRecords,
 };
