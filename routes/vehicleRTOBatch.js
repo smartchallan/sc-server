@@ -22,35 +22,40 @@ router.post('/', async (req, res) => {
     // Concurrency control: limit number of simultaneous outbound requests
     const CONCURRENCY = parseInt(process.env.RTO_BATCH_CONCURRENCY, 10) || 5;
 
-    async function runWithConcurrency(items, limit, iteratorFn) {
+    // Custom concurrency worker: 4 API calls at a time, 1 second between batches
+    async function runWithConcurrencyAndDelay(items, batchSize, iteratorFn, delayMs) {
       const results = new Array(items.length);
-      let idx = 0;
-
-      const workers = Array(Math.min(limit, items.length)).fill().map(async () => {
-        while (true) {
-          const current = idx++;
-          if (current >= items.length) break;
-          const item = items[current];
-          try {
-            results[current] = await iteratorFn(item);
-          } catch (err) {
-            results[current] = { vehicleNumber: item, success: false, error: err.message };
-          }
+      let i = 0;
+      while (i < items.length) {
+        const batch = items.slice(i, i + batchSize).map((item, idx) => {
+          return iteratorFn(item).then(
+            (res) => { results[i + idx] = res; },
+            (err) => { results[i + idx] = { vehicleNumber: item, success: false, error: err.message }; }
+          );
+        });
+        await Promise.all(batch);
+        i += batchSize;
+        if (i < items.length) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
         }
-      });
-
-      await Promise.all(workers);
+      }
       return results;
     }
 
-    const results = await runWithConcurrency(vehicleNumbers, CONCURRENCY, async (vn) => {
-      try {
-        const data = await service.getRTODetails(vn, clientID);
-        return { vehicleNumber: vn, success: true, data };
-      } catch (err) {
-        return { vehicleNumber: vn, success: false, error: err.message };
-      }
-    });
+    // Use 4 at a time, 1 second between batches
+    const results = await runWithConcurrencyAndDelay(
+      vehicleNumbers,
+      4, // batch size
+      async (vn) => {
+        try {
+          const data = await service.getRTODetails(vn, clientID);
+          return { vehicleNumber: vn, success: true, data };
+        } catch (err) {
+          return { vehicleNumber: vn, success: false, error: err.message };
+        }
+      },
+      1000 // 1 second delay between batches
+    );
 
     // Summary counts and failed records list
     const successCount = results.filter(r => r.success).length;
