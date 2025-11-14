@@ -1,19 +1,35 @@
 const axios = require('axios');
 require('dotenv').config();
 
-async function ulipLogin() {
-  console.log('chkpoint 5');
+
+// In-memory token cache: { [clientID]: { token, expiresAt } }
+const tokenCache = {};
+
+async function ulipLogin(clientID) {
+  // Always login with env credentials (per clientID, but same creds)
   const url = process.env.ULIP_LOGIN_URL;
   const payload = {
     username: process.env.ULIP_USERNAME,
     password: process.env.ULIP_PASSWORD,
   };
   const headers = { 'Content-Type': 'application/json' };
-  
-  console.log('chkpoint 5A', url, payload, headers);
   const response = await axios.post(url, payload, { headers });
-  console.log('chkpoint 6' , response.data.response.id);
-  return response.data.response.id;
+  const token = response.data.response.id;
+  // Store token with 20 hour expiry
+  tokenCache[clientID] = {
+    token,
+    expiresAt: Date.now() + 20 * 60 * 60 * 1000 // 20 hours
+  };
+  return token;
+}
+
+async function getValidToken(clientID) {
+  const cached = tokenCache[clientID];
+  if (cached && cached.token && cached.expiresAt > Date.now()) {
+    return cached.token;
+  }
+  // No valid token, login
+  return await ulipLogin(clientID);
 }
 
 // Import models
@@ -40,9 +56,10 @@ const sequelize = new Sequelize(
 const VehicleChallan = VehicleChallanModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
 
+
 async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
-  const token = await ulipLogin();
+  let token = await getValidToken(clientID);
   const url = process.env.ULIP_ECHALLAN_DETAILS_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,
@@ -51,18 +68,28 @@ async function getChallanDetails(vehicleNumber, clientID) {
   const data = { 'vehicleNumber': vehicleNumber };
   console.log('chkpoint 7', url, data, headers);
 
-  const response = await axios.post(url, data, { headers });
-  console.log('checkpoint 7B', response);
-  console.log('checkpoint 7BB', response.data.response[0]);
-  console.log('checkpoint 7BBB', response.data.response[0].response.data);
-  console.log('chkpoint 7A', response.data.response[0].response.data);
+  let response;
+  try {
+    response = await axios.post(url, data, { headers });
+  } catch (err) {
+    // If error is invalid token, refresh token and retry once
+    if (err.response && err.response.data &&
+        (String(err.response.data.message || '').toLowerCase().includes('invalid token') ||
+         String(err.response.data.error || '').toLowerCase().includes('invalid token'))
+    ) {
+      token = await ulipLogin(clientID); // force refresh
+      headers['Authorization'] = `Bearer ${token}`;
+      response = await axios.post(url, data, { headers });
+    } else {
+      throw err;
+    }
+  }
+
   const pendingData = response.data.response[0].response.data?.Pending_data;
   const disposedData = response.data.response[0].response.data?.Disposed_data;
-  
   // Check if both pending and disposed data are empty or null
   const hasPendingChallans = pendingData && (Array.isArray(pendingData) ? pendingData.length > 0 : pendingData);
   const hasDisposedChallans = disposedData && (Array.isArray(disposedData) ? disposedData.length > 0 : disposedData);
-  
   if (!hasPendingChallans && !hasDisposedChallans) {
     // Update di_user_vehicle table to mark challan_data as true even when no challans found
     await UserVehicle.update(
@@ -74,7 +101,6 @@ async function getChallanDetails(vehicleNumber, clientID) {
         } 
       }
     );
-    
     // Return success message when no challans are found
     return {
       success: true,
@@ -85,7 +111,6 @@ async function getChallanDetails(vehicleNumber, clientID) {
       }
     };
   }
-  
   // Save to di_vehicle_challans
   const existing = await VehicleChallan.findOne({
     where: { client_id: clientID, vehicle_number: vehicleNumber }
@@ -106,7 +131,6 @@ async function getChallanDetails(vehicleNumber, clientID) {
       updated_at: new Date()
     });
   }
-  
   // Update di_user_vehicle table to mark challan_data as true when data is fetched successfully
   await UserVehicle.update(
     { challan_data: true, updated_at: new Date() },
@@ -117,7 +141,6 @@ async function getChallanDetails(vehicleNumber, clientID) {
       } 
     }
   );
-  
   console.log('vehicle challan data pending', pendingData);
   console.log('vehicle challan data disposed', disposedData);
   return response.data.response[0].response.data;
