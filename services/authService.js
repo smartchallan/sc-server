@@ -88,7 +88,8 @@ async function registerUser(data) {
         country: data.country,
         city: data.city,
         state: data.state,
-        zip: data.pin
+        zip: data.pin,
+        gtin: data.gtin
         // Add other UserMeta fields if needed
     };
 

@@ -81,6 +81,7 @@ const dealerDataRouter = require('./routes/dealerData')(models);
 const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 const userBillingSettingRouter = require('./routes/userBillingSetting')(models);
 const userProfileServiceRouter = require('./routes/userProfileService')(models);
+const userOptionsRouter = require('./routes/userOptions');
 
 // Application routes
 app.use('/auth', authRouter);
@@ -88,6 +89,7 @@ app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
 app.use('/', userProfileServiceRouter);
 app.use('/updatevehiclestatus', updateVehicleRouter);
+app.use('/useroptions', userOptionsRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);

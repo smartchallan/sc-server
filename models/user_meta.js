@@ -11,7 +11,8 @@ module.exports = (sequelize) => {
     city: { type: DataTypes.STRING },
     zip: { type: DataTypes.STRING },
     country: { type: DataTypes.STRING },
-    business_category: { type: DataTypes.STRING }
+  business_category: { type: DataTypes.STRING },
+  gtin: { type: DataTypes.STRING }
   }, {
     tableName: 'di_user_meta',
     timestamps: false

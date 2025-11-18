@@ -7,6 +7,8 @@ module.exports = (sequelize) => {
     user_role: { type: DataTypes.STRING, allowNull: false },
     option_key: { type: DataTypes.STRING, allowNull: false },
     option_value: { type: DataTypes.TEXT, allowNull: true },
+    created_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    updated_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   }, {
     tableName: 'di_user_options',
     timestamps: false

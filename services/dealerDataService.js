@@ -120,6 +120,7 @@ async function getDealerData(models, dealer_id) {
         email: dealer.email,
         mobile: dealer.mobile,
         role: dealer.role,
+        admin_id: dealer.admin_id,
         meta: dealer.meta
       },
       summary: {
