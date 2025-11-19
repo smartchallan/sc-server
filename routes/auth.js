@@ -23,7 +23,9 @@ router.post('/register', async (req, res) => {
             pin,
             admin_id,
             dealer_id,
-            gtin
+            gtin,
+            company_name,
+            business_category
         } = req.body;
 
         // Validate mandatory fields
@@ -59,7 +61,9 @@ router.post('/register', async (req, res) => {
             pin,
             admin_id,
             dealer_id,
-            gtin
+            gtin,
+            company_name,
+            business_category
         };
 
         // If registering a dealer, set admin_id to logged-in user id

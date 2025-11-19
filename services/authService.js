@@ -89,7 +89,9 @@ async function registerUser(data) {
         city: data.city,
         state: data.state,
         zip: data.pin,
-        gtin: data.gtin
+        gtin: data.gtin,
+        company_name: data.company_name,
+        business_category: data.business_category
         // Add other UserMeta fields if needed
     };
 
