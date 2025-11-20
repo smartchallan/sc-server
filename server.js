@@ -82,6 +82,7 @@ const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 const userBillingSettingRouter = require('./routes/userBillingSetting')(models);
 const userProfileServiceRouter = require('./routes/userProfileService')(models);
 const userOptionsRouter = require('./routes/userOptions');
+const testEmailRouter = require('./routes/testEmail');
 
 // Application routes
 app.use('/auth', authRouter);
@@ -90,6 +91,7 @@ app.use('/', userBillingSettingRouter);
 app.use('/', userProfileServiceRouter);
 app.use('/updatevehiclestatus', updateVehicleRouter);
 app.use('/useroptions', userOptionsRouter);
+app.use('/testemail', testEmailRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);

@@ -43,6 +43,8 @@ module.exports = (UserVehicle) => {
       const { admin_id, dealer_id, client_id } = req.query;
       const service = serviceFactory(UserVehicle);
       const vehicles = await service.getUserVehicles({ admin_id, dealer_id, client_id });
+      // Logging response
+      console.table(vehicles);
       res.json({ vehicles });
     } catch (err) {
       res.status(400).json({ error: err.message });

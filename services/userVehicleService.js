@@ -1,4 +1,5 @@
 // services/userVehicleService.js
+const { VehicleRTOData, VehicleChallan } = require('../models');
 module.exports = (UserVehicle) => {
   /**
    * Get user vehicles by admin_id, dealer_id, or client_id
@@ -17,7 +18,39 @@ module.exports = (UserVehicle) => {
     } else {
       throw new Error('At least one of admin_id, dealer_id, or client_id must be provided');
     }
-    return await UserVehicle.findAll({ where });
+    const vehicles = await UserVehicle.findAll({ where });
+
+    // For each vehicle, fetch RTO and challan data
+    const enrichedVehicles = await Promise.all(
+      vehicles.map(async (vehicle) => {
+        const vehicle_number = vehicle.vehicle_number;
+        const client_id = vehicle.client_id;
+
+        // Fetch RTO data
+        let rtoRecord = await VehicleRTOData.findOne({
+          where: { vehicle_number, client_id }
+        });
+        let rto_data = rtoRecord ? rtoRecord.rto_data : 'Data not available';
+
+        // Fetch Challan data
+        let challanRecord = await VehicleChallan.findOne({
+          where: { vehicle_number, client_id }
+        });
+        let challan_data = challanRecord
+          ? {
+              pending_data: challanRecord.pending_data || 'Data not available',
+              disposed_data: challanRecord.disposed_data || 'Data not available'
+            }
+          : 'Data not available';
+
+        return {
+          ...vehicle.toJSON(),
+          rto_data,
+          challan_data
+        };
+      })
+    );
+    return enrichedVehicles;
   }
 
   /**
