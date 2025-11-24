@@ -103,12 +103,7 @@ async function registerUser(data) {
     console.table([userObj]);
     console.table([userMeta.toJSON ? userMeta.toJSON() : userMeta]);
 
-    // Send welcome email (ignore errors)
-    try {
-        await sendWelcomeEmail(userObj.email, userObj.name);
-    } catch (e) {
-        console.error('Failed to send welcome email:', e.message);
-    }
+    // Welcome email is sent from routes/auth.js if needed
     // Return combined response
     return {
         user: userObj,
