@@ -26,8 +26,8 @@ async function loginUser(email, password) {
     //     return null;
     // }
 
-    if (!user || user.status === false) {
-        console.table([{ error: 'Invalid credentials or inactive user.' }]);
+    if (!user) {
+        console.table([{ error: 'Invalid credentials.' }]);
         return null;
     }
 
