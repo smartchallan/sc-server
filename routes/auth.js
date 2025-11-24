@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { registerUser } = require('../services/authService');
+const { sendWelcomeEmail } = require('../services/emailService');
 // require('dotenv').config();
 
 router.post('/login', authController.login);
@@ -75,6 +76,17 @@ router.post('/register', async (req, res) => {
         }
         console.table('register user data is' + JSON.stringify(userData));
         const user = await registerUser(userData);
+
+        // After user is created, check sendEmail flag
+        const { sendEmail } = req.body;
+        if (sendEmail) {
+            try {
+                await sendWelcomeEmail(user.email, user.name, user.username, req.body.password);
+            } catch (emailErr) {
+                console.error('Failed to send welcome email:', emailErr);
+            }
+        }
+
         res.status(201).json({ message: 'User registered successfully', user });
     } catch (err) {
         res.status(500).json({ error: err.message });

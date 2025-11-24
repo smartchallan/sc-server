@@ -88,7 +88,7 @@ const testEmailRouter = require('./routes/testEmail');
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
-app.use('/', userProfileServiceRouter);
+app.use('/userprofile', userProfileServiceRouter);
 app.use('/updatevehiclestatus', updateVehicleRouter);
 app.use('/useroptions', userOptionsRouter);
 app.use('/testemail', testEmailRouter);

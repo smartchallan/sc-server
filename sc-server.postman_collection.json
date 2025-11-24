@@ -1,0 +1,130 @@
+{
+  "info": {
+    "_postman_id": "sc-server-collection-001",
+    "name": "SC Server API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/ping", "host": ["{{baseUrl}}"], "path": ["ping"] }
+      }
+    },
+    {
+      "name": "Auth Register",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"client\",\n  \"sendEmail\": true\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+      }
+    },
+    {
+      "name": "User Vehicle List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/uservehicle?client_id=1", "host": ["{{baseUrl}}"], "path": ["uservehicle"], "query": [{"key": "client_id", "value": "1"}] }
+      }
+    },
+    {
+      "name": "Admin Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/admindata/1", "host": ["{{baseUrl}}"], "path": ["admindata", "1"] }
+      }
+    },
+    {
+      "name": "Client Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/clientdata/1", "host": ["{{baseUrl}}"], "path": ["clientdata", "1"] }
+      }
+    },
+    {
+      "name": "Dealer Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/dealerdata/1", "host": ["{{baseUrl}}"], "path": ["dealerdata", "1"] }
+      }
+    },
+    {
+      "name": "User Options",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/useroptions?user_id=1", "host": ["{{baseUrl}}"], "path": ["useroptions"], "query": [{"key": "user_id", "value": "1"}] }
+      }
+    },
+    {
+      "name": "Test Email",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/testemail?to=test@example.com", "host": ["{{baseUrl}}"], "path": ["testemail"], "query": [{"key": "to", "value": "test@example.com"}] }
+      }
+    },
+    {
+      "name": "Vehicle RTO Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/getvehiclertodata?vehicle_number=ABC1234", "host": ["{{baseUrl}}"], "path": ["getvehiclertodata"], "query": [{"key": "vehicle_number", "value": "ABC1234"}] }
+      }
+    },
+    {
+      "name": "Vehicle RTO Data Batch",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": { "mode": "raw", "raw": "{\n  \"vehicle_numbers\": [\"ABC1234\", \"XYZ5678\"]\n}" },
+        "url": { "raw": "{{baseUrl}}/getvehiclertodata/batch", "host": ["{{baseUrl}}"], "path": ["getvehiclertodata", "batch"] }
+      }
+    },
+    {
+      "name": "Vehicle EChallan Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/getvehicleechallandata?vehicle_number=ABC1234", "host": ["{{baseUrl}}"], "path": ["getvehicleechallandata"], "query": [{"key": "vehicle_number", "value": "ABC1234"}] }
+      }
+    },
+    {
+      "name": "Vehicle EChallan Data Batch",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": { "mode": "raw", "raw": "{\n  \"vehicle_numbers\": [\"ABC1234\", \"XYZ5678\"]\n}" },
+        "url": { "raw": "{{baseUrl}}/getvehicleechallandata/batch", "host": ["{{baseUrl}}"], "path": ["getvehicleechallandata", "batch"] }
+      }
+    },
+    {
+      "name": "Driver Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/getdriverdata?driver_id=1", "host": ["{{baseUrl}}"], "path": ["getdriverdata"], "query": [{"key": "driver_id", "value": "1"}] }
+      }
+    },
+    {
+      "name": "Fastag Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/getvehiclefastagdata?vehicle_number=ABC1234", "host": ["{{baseUrl}}"], "path": ["getvehiclefastagdata"], "query": [{"key": "vehicle_number", "value": "ABC1234"}] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ]
+}
