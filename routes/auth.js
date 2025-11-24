@@ -75,19 +75,24 @@ router.post('/register', async (req, res) => {
             userData.admin_id = req.body.admin_id;
         }
         console.table('register user data is' + JSON.stringify(userData));
-        const user = await registerUser(userData);
-
-        // After user is created, check sendEmail flag
+        const regResult = await registerUser(userData);
+        // regResult: { user: userObj, userMeta }
         const { sendEmail } = req.body;
         if (sendEmail) {
             try {
-                await sendWelcomeEmail(user.email, user.name, user.username, req.body.password);
+                // Log values to verify
+                console.log('Sending welcome email with:', {
+                    username: regResult.user.email,
+                    name: regResult.user.name,
+                    password: req.body.password
+                });
+                // Use email as username, and the original password from req.body
+                await sendWelcomeEmail(regResult.user.email, regResult.user.name, regResult.user.email, req.body.password);
             } catch (emailErr) {
                 console.error('Failed to send welcome email:', emailErr);
             }
         }
-
-        res.status(201).json({ message: 'User registered successfully', user });
+        res.status(201).json({ message: 'User registered successfully', user: regResult });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
