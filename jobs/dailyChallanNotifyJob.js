@@ -6,7 +6,7 @@
 // 4. Group by client, prepare table, send email
 // 5. Schedule job at configurable time
 
-const { User, vehicle_challan, user_vehicles } = require('../models');
+const { User, VehicleChallan, UserVehicles } = require('../models');
 const emailService = require('../services/emailService');
 const { Op } = require('sequelize');
 const moment = require('moment');
@@ -26,7 +26,7 @@ async function dailyChallanNotifyJob() {
     // 2. Fetch records from challan table which got updated yesterday
     const yesterday = moment().subtract(1, 'days').startOf('day');
     const today = moment().startOf('day');
-    const challans = await vehicle_challan.findAll({
+  const challans = await VehicleChallan.findAll({
       where: {
         updated_at: {
           [Op.gte]: yesterday.toDate(),
