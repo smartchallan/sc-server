@@ -10,7 +10,6 @@ const { User, vehicle_challan, user_vehicles } = require('../models');
 const emailService = require('../services/emailService');
 const { Op } = require('sequelize');
 const moment = require('moment');
-const schedule = require('node-schedule');
 const config = require('../config/config');
 
 async function dailyChallanNotifyJob() {
