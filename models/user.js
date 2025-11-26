@@ -15,7 +15,24 @@ module.exports = (sequelize) => {
     client_id: { type: DataTypes.INTEGER, allowNull: true }
   }, {
     tableName: 'di_user',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.created_at) {
+          instance.created_at = moment.tz(instance.created_at, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
 
   // Setup association here to avoid eager loading error

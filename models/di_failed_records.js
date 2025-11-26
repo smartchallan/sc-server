@@ -13,7 +13,24 @@ module.exports = (sequelize) => {
     record_success_at: { type: DataTypes.DATE, allowNull: true },
   }, {
     tableName: 'di_failed_records',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.record_failed_at) {
+          instance.record_failed_at = moment.tz(instance.record_failed_at, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.record_success_at) {
+          instance.record_success_at = moment.tz(instance.record_success_at, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.record_success_at) {
+          instance.record_success_at = moment.tz(instance.record_success_at, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
   return DIFailedRecords;
 };

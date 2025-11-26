@@ -10,7 +10,24 @@ module.exports = (sequelize) => {
     job_duration: { type: DataTypes.INTEGER, allowNull: true }, // in seconds
   }, {
     tableName: 'di_scheduled_job_records',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.job_started_at) {
+          instance.job_started_at = moment.tz(instance.job_started_at, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.job_completed_at) {
+          instance.job_completed_at = moment.tz(instance.job_completed_at, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.job_completed_at) {
+          instance.job_completed_at = moment.tz(instance.job_completed_at, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
   return DIScheduledJobRecords;
 };

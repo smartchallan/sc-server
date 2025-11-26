@@ -28,7 +28,24 @@ module.exports = (sequelize) => {
     }
   }, {
     tableName: 'di_user_vehicle',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.registered_at) {
+          instance.registered_at = moment.tz(instance.registered_at, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
   return UserVehicle;
 };

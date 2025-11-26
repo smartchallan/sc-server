@@ -11,7 +11,24 @@ module.exports = (sequelize) => {
     updated_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
   }, {
     tableName: 'di_user_options',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.created_at) {
+          instance.created_at = moment.tz(instance.created_at, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.updated_at) {
+          instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
   return DIUserOptions;
 };

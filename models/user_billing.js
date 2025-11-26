@@ -14,7 +14,30 @@ module.exports = (sequelize) => {
     plan_end_dt: { type: DataTypes.DATE, allowNull: true }
   }, {
     tableName: 'di_user_billing',
-    timestamps: false
+    timestamps: false,
+    hooks: {
+      beforeCreate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.created_dt) {
+          instance.created_dt = moment.tz(instance.created_dt, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.plan_start_dt) {
+          instance.plan_start_dt = moment.tz(instance.plan_start_dt, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.plan_end_dt) {
+          instance.plan_end_dt = moment.tz(instance.plan_end_dt, 'Asia/Kolkata').utc().toDate();
+        }
+      },
+      beforeUpdate: (instance) => {
+        const moment = require('moment-timezone');
+        if (instance.plan_start_dt) {
+          instance.plan_start_dt = moment.tz(instance.plan_start_dt, 'Asia/Kolkata').utc().toDate();
+        }
+        if (instance.plan_end_dt) {
+          instance.plan_end_dt = moment.tz(instance.plan_end_dt, 'Asia/Kolkata').utc().toDate();
+        }
+      }
+    }
   });
 
   return UserBilling;
