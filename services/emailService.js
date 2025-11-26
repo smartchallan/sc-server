@@ -41,4 +41,13 @@ async function sendWelcomeEmail(to, name, username, password) {
   });
 }
 
-module.exports = { sendWelcomeEmail };
+async function sendMail({ to, subject, html }) {
+  return transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to,
+    subject,
+    html
+  });
+}
+
+module.exports = { sendWelcomeEmail, sendMail };

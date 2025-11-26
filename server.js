@@ -62,6 +62,7 @@ app.use((req, res, next) => {
 
 // Scheduled jobs
 require('./jobs/vehicleEChallanBatchScheduler');
+require('./jobs/dailyChallanNotifyScheduler');
 
 // Register update vehicle status route
 const updateVehicleRouter = require('./routes/updateVehicle')(models);
