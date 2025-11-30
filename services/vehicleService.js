@@ -38,7 +38,7 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   if (!['active', 'inactive', 'delete'].includes(status)) {
     throw new Error('status must be active, inactive, or delete.');
   }
-  const { UserVehicle } = models;
+  const { UserVehicle, VehicleChallan, VehicleRTOData } = models;
   const vehicle = await UserVehicle.findOne({ where: { id: vehicle_id } });
   if (!vehicle) {
     throw new Error('Vehicle not found.');
@@ -50,7 +50,16 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   await vehicle.update({ status: dbStatus });
 
   if (status === 'delete') {
-    return { message: 'Vehicle status set to deleted.', vehicle };
+    // Clear RTO and challan data for this vehicle and client
+    const vehicle_number = vehicle.vehicle_number;
+    const client_id = vehicle.client_id;
+    await VehicleChallan.destroy({
+      where: { vehicle_number, client_id }
+    });
+    await VehicleRTOData.destroy({
+      where: { vehicle_number, client_id }
+    });
+    return { message: 'Vehicle status set to deleted and RTO/challan data cleared.', vehicle };
   } else {
     return { message: 'Vehicle status updated.', vehicle };
   }
