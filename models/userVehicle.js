@@ -38,12 +38,16 @@ module.exports = (sequelize) => {
         if (instance.updated_at) {
           instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
         }
+        // Debug log for vehicle_number
+        console.table({ action: 'beforeCreate', vehicle_number: instance.vehicle_number });
       },
       beforeUpdate: (instance) => {
         const moment = require('moment-timezone');
         if (instance.updated_at) {
           instance.updated_at = moment.tz(instance.updated_at, 'Asia/Kolkata').utc().toDate();
         }
+        // Debug log for vehicle_number
+        console.table({ action: 'beforeUpdate', vehicle_number: instance.vehicle_number });
       }
     }
   });

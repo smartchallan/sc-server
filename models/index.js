@@ -41,6 +41,13 @@ const UserSettings = UserSettingsModel(sequelize);
 const UserVehicleRtoData = UserVehicleRtoDataModel(sequelize);
 const VehicleRTOData = VehicleRTODataModel(sequelize);
 const VehicleChallan = VehicleChallanModel(sequelize);
+const CartModel = require('./cart');
+const Cart = CartModel(sequelize);
+const CartLineItemModel = require('./cartLineItem');
+const CartLineItem = CartLineItemModel(sequelize);
+// Setup association for eager loading
+Cart.hasMany(CartLineItem, { foreignKey: 'cart_id', as: 'line_items' });
+CartLineItem.belongsTo(Cart, { foreignKey: 'cart_id', as: 'cart' });
 const UserBilling = UserBillingModel(sequelize);
 const UserOptions = DIUserOptionsModel(sequelize);
 const FailedRecords = DIFailedRecordsModel(sequelize);
@@ -56,6 +63,8 @@ module.exports = {
   UserVehicleRtoData,
   VehicleRTOData,
   VehicleChallan,
+  Cart,
+  CartLineItem,
   UserBilling,
   UserOptions,
   FailedRecords,

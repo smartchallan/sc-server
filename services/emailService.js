@@ -51,3 +51,77 @@ async function sendMail({ to, subject, html }) {
 }
 
 module.exports = { sendWelcomeEmail, sendMail };
+/**
+ * Send order notification email to admin and client
+ * @param {Object} params - { clientEmail, adminEmail, clientName, orderDetails }
+ */
+async function sendOrderNotificationEmail({ clientEmail, adminEmail, clientName, orderDetails }) {
+  // Use fallback emails if not provided
+  const finalClientEmail = clientEmail || process.env.FALLBACK_CLIENT_EMAIL;
+  const finalAdminEmail = adminEmail || process.env.FALLBACK_ADMIN_EMAIL;
+
+  const html = `
+    <div style="font-family:'Segoe UI', 'Roboto', 'Arial', sans-serif;max-width:820px;margin:auto;padding:24px;background:#f9f9f9;border-radius:10px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <img src="${process.env.COMPANY_LOGO_URL}" alt="Company Logo" style="max-width:180px;max-height:80px;"/>
+      </div>
+      <h2 style="color:#2d3748;font-family:'Segoe UI', 'Roboto', 'Arial', sans-serif;letter-spacing:0.5px;">Order Placed Successfully!</h2>
+      <p style="font-size:16px;">Dear <b>${clientName}</b>,</p>
+      <p style="font-size:15px;">Your order has been placed. Below are the details:</p>
+      <div style="margin:24px 0;padding:18px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;box-shadow:0 2px 8px #e2e8f0;">
+        <h3 style="color:#3182ce;margin-bottom:12px;font-family:'Segoe UI', 'Roboto', 'Arial', sans-serif;font-size:18px;">Order Details</h3>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;max-width:780px;font-size:15px;border-collapse:separate;border-spacing:0;word-break:break-word;table-layout:fixed;background:#fff;">
+            <thead>
+              <tr style="background:#f6f8fa;">
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;width:100px;">Vehicle No.</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;width:180px;">Challan No.</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">Type</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">Amount</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">Service Fee</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">GST %</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">GST Amt</th>
+                <th style="padding:10px 10px;border-bottom:2px solid #3182ce;font-family:'Segoe UI Semibold','Segoe UI','Roboto',Arial,sans-serif;font-size:16px;font-weight:bold;color:#222;text-align:left;">Discount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Array.isArray(orderDetails) ? orderDetails.map((item, idx) => `
+                <tr style='background:${idx%2===0 ? '#f9fafb' : '#fff'};'>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.vehicle_number || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;width:180px;'>${item.challan_number || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.challan_type || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.challan_amount || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.service_fee || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.gst_percent || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.gst_amt || ''}</td>
+                  <td style='padding:10px 10px;border-bottom:1px solid #e2e8f0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:13px;color:#222;'>${item.discount || ''}</td>
+                </tr>
+              `).join('') : orderDetails}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p style="margin-top:32px;font-size:15px;">Thank you for choosing ${process.env.COMPANY_NAME || 'us'}!<br/>${process.env.COMPANY_NAME || 'The Team'}</p>
+    </div>
+  `;
+  // Send to client if defined
+  if (finalClientEmail) {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: finalClientEmail,
+      subject: `Order Confirmation - ${process.env.COMPANY_NAME || 'Your Order'}`,
+      html
+    });
+  }
+  // Send to admin if defined
+  if (finalAdminEmail) {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: finalAdminEmail,
+      subject: `New Order Placed by ${clientName}`,
+      html
+    });
+  }
+}
+
+module.exports.sendOrderNotificationEmail = sendOrderNotificationEmail;

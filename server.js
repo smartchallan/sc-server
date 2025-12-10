@@ -19,6 +19,7 @@ const {
   UserVehicleRtoData,
   VehicleRTOData,
   VehicleChallan,
+  Cart,
   UserBilling
 } = require('./models');
 
@@ -35,7 +36,7 @@ if (!User.associations.billing) {
 
 const models = { 
   User, UserMeta, UserVehicle, UserVehicles, UserSettings, 
-  UserVehicleRtoData, VehicleRTOData, VehicleChallan, UserBilling 
+  UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling 
 };
 
 const app = express();
@@ -82,17 +83,20 @@ const dealerDataRouter = require('./routes/dealerData')(models);
 const vehicleRTODataRouter = require('./routes/vehicleRTOData')(models);
 const userBillingSettingRouter = require('./routes/userBillingSetting')(models);
 const userProfileServiceRouter = require('./routes/userProfileService')(models);
+const vehicleSummaryRouter = require('./routes/vehicleSummary');
 const userOptionsRouter = require('./routes/userOptions');
 const testEmailRouter = require('./routes/testEmail');
+const cartRouter = require('./routes/cart');
 
-// Application routes
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
 app.use('/userprofile', userProfileServiceRouter);
+app.use('/vehiclesummary', vehicleSummaryRouter);
 app.use('/updatevehiclestatus', updateVehicleRouter);
 app.use('/useroptions', userOptionsRouter);
 app.use('/testemail', testEmailRouter);
+app.use('/cart', cartRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);
