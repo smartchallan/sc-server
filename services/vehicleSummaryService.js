@@ -21,14 +21,14 @@ function parseDateStatus(dateStr) {
 exports.getSummary = async (client_id, options = {}) => {
   // Accept pagination parameters
   // Usage: getSummary(client_id, { limit, offset })
-  const limit = options.limit !== undefined ? Number(options.limit) : 10;
-  const offset = options.offset !== undefined ? Number(options.offset) : 0;
-  // Fetch paginated vehicles and total count
-  const { rows: vehicles, count: total } = await UserVehicle.findAndCountAll({
+  let findOptions = {
     where: { client_id, status: 'active' },
-    limit,
-    offset
-  });
+    order: [['registered_at', 'DESC']]
+  };
+  if (options.limit !== undefined) findOptions.limit = Number(options.limit);
+  if (options.offset !== undefined) findOptions.offset = Number(options.offset);
+  // Fetch vehicles and total count
+  const { rows: vehicles, count: total } = await UserVehicle.findAndCountAll(findOptions);
   const result = [];
   for (const vehicle of vehicles) {
     const vehicle_number = vehicle.vehicle_number;
@@ -59,6 +59,7 @@ exports.getSummary = async (client_id, options = {}) => {
     }
     result.push({
       ...vehicle.toJSON(),
+      registered_at: vehicle.registered_at,
       pending_challan_count: pendingChallanCount,
       disposed_challan_count: disposedChallanCount,
       ...rtoFields

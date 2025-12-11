@@ -87,6 +87,7 @@ const vehicleSummaryRouter = require('./routes/vehicleSummary');
 const userOptionsRouter = require('./routes/userOptions');
 const testEmailRouter = require('./routes/testEmail');
 const cartRouter = require('./routes/cart');
+const vehicleReportRouter = require('./routes/getVehicleReport');
 
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
@@ -97,6 +98,8 @@ app.use('/updatevehiclestatus', updateVehicleRouter);
 app.use('/useroptions', userOptionsRouter);
 app.use('/testemail', testEmailRouter);
 app.use('/cart', cartRouter);
+
+app.use('/getvehiclereport', vehicleReportRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);

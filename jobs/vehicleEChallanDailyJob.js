@@ -4,8 +4,8 @@ const { User, UserVehicle } = require('../models');
 const vehicleEChallanBatch = require('../routes/vehicleEChallanBatch');
 require('dotenv').config();
 
-// Get schedule from env or use default (12:15 PM every day)
-const SCHEDULE = process.env.ECHALLAN_JOB_CRON || '15 12 * * *';
+// Get schedule from env or use default (every 6 hours)
+const SCHEDULE = process.env.ECHALLAN_JOB_CRON || '0 */6 * * *';
 
 async function runVehicleEChallanJob() {
   try {
