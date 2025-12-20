@@ -12,7 +12,9 @@ exports.get = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const payload = req.body;
+    console.table([payload]);
     const result = await cartService.updateCart(payload);
+    console.table([result]);
     res.json(result);
   } catch (err) {
     console.error('Error updating cart:', err);
@@ -42,22 +44,22 @@ exports.create = async (req, res) => {
     }
 
     // Send email notification to admin and client
-    const { sendOrderNotificationEmail } = require('../services/emailService');
-    try {
-      const clientEmail = payload.client_email || process.env.FALLBACK_CLIENT_EMAIL;
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.FALLBACK_ADMIN_EMAIL;
-      if (!clientEmail && !adminEmail) {
-        throw new Error('No recipients defined for order notification email');
-      }
-      await sendOrderNotificationEmail({
-        clientEmail,
-        adminEmail,
-        clientName: payload.client_name || 'Client',
-        orderDetails
-      });
-    } catch (emailErr) {
-      console.error('Error sending order notification email:', emailErr);
-    }
+    // const { sendOrderNotificationEmail } = require('../services/emailService');
+    // try {
+    //   const clientEmail = payload.client_email || process.env.FALLBACK_CLIENT_EMAIL;
+    //   const adminEmail = process.env.ADMIN_EMAIL || process.env.FALLBACK_ADMIN_EMAIL;
+    //   if (!clientEmail && !adminEmail) {
+    //     throw new Error('No recipients defined for order notification email');
+    //   }
+    //   await sendOrderNotificationEmail({
+    //     clientEmail,
+    //     adminEmail,
+    //     clientName: payload.client_name || 'Client',
+    //     orderDetails
+    //   });
+    // } catch (emailErr) {
+    //   console.error('Error sending order notification email:', emailErr);
+    // }
 
     res.json({ success: true, data: created });
   } catch (err) {

@@ -23,6 +23,7 @@ exports.updateCart = async (payload) => {
   const updateFields = {};
   if (payload.status) updateFields.status = payload.status;
   if (payload.last_updated_by) updateFields.last_updated_by = payload.last_updated_by;
+  if (payload.transaction_id) updateFields.transaction_id = payload.transaction_id;
   updateFields.updated_at = new Date();
 
   let whereClause;
@@ -62,6 +63,7 @@ exports.createCart = async (payload) => {
     admin_id: payload.admin_id,
     request_type: payload.request_type || null,
     item_count: Array.isArray(payload.line_items) ? payload.line_items.length : 0,
+    transaction_id: payload.transaction_id || null,
     last_updated_by: payload.last_updated_by || null,
     status: payload.status || 'pending',
     created_at: payload.created_at || new Date(),

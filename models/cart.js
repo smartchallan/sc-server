@@ -8,6 +8,7 @@ module.exports = (sequelize) => {
     admin_id: { type: DataTypes.INTEGER, allowNull: false },
     request_type: { type: DataTypes.STRING(64), allowNull: true },
     item_count: { type: DataTypes.INTEGER, allowNull: true },
+    transaction_id: { type: DataTypes.STRING(128), allowNull: true },
     last_updated_by: { type: DataTypes.ENUM('admin', 'dealer', 'client'), allowNull: true },
     status: { type: DataTypes.STRING(32), allowNull: true, defaultValue: 'pending' },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
