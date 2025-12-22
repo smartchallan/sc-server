@@ -1,11 +1,11 @@
 // Vehicle RTO Batch Job
 const cron = require('node-cron');
 const { User, UserVehicle } = require('../models');
-const vehicleRTOBatch = require('../routes/vehicleRTOBatch');
+const { processRTOBatch } = require('../routes/vehicleRTOBatch');
 require('dotenv').config();
 
-// Schedule for 2:00 PM IST
-const SCHEDULE = process.env.RTO_JOB_CRON || '0 14 * * *';
+// Schedule for 2:30 PM IST
+const SCHEDULE = process.env.RTO_JOB_CRON || '30 14 * * *';
 
 
 const { ScheduledJobRecords } = require('../models');
@@ -39,23 +39,12 @@ async function runVehicleRTOBatchJob() {
       const vehicleNumbers = vehicles.map(v => v.vehicle_number);
       console.log(`[${moment().format()}] [RTO-BATCH] Client ${client.id} active vehicles:`, vehicleNumbers);
       if (vehicleNumbers.length === 0) continue;
-      // 3. Call the batch function from vehicleRTOBatch.js (not API)
-      if (typeof vehicleRTOBatch.handle === 'function') {
-        await vehicleRTOBatch.handle({
-          body: { vehicleNumbers, clientID: client.id, exportCsv: true },
-          query: {},
-          status: () => ({ json: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, data), send: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch send:`, data), setHeader: () => {} }),
-          setHeader: () => {},
-        }, { json: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, data), send: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch send:`, data), setHeader: () => {} });
-      } else if (typeof vehicleRTOBatch === 'function') {
-        await vehicleRTOBatch({
-          body: { vehicleNumbers, clientID: client.id, exportCsv: true },
-          query: {},
-          status: () => ({ json: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, data), send: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch send:`, data), setHeader: () => {} }),
-          setHeader: () => {},
-        }, { json: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, data), send: (data) => console.log(`[${moment().format()}] [RTO-BATCH] Batch send:`, data), setHeader: () => {} });
-      } else {
-        console.warn(`[${moment().format()}] [RTO-BATCH] vehicleRTOBatch does not export a callable batch function.`);
+      // 3. Call the batch function directly
+      try {
+        const batchResult = await processRTOBatch({ vehicleNumbers, clientID: client.id });
+        console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, batchResult);
+      } catch (err) {
+        console.error(`[${moment().format()}] [RTO-BATCH] Batch error for client ${client.id}:`, err);
       }
     }
     console.log(`[${moment().format()}] [RTO-BATCH] Job completed.`);
