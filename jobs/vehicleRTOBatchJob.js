@@ -4,8 +4,8 @@ const { User, UserVehicle } = require('../models');
 const vehicleRTOBatch = require('../routes/vehicleRTOBatch');
 require('dotenv').config();
 
-// Schedule for 1:45 PM IST
-const SCHEDULE = process.env.RTO_JOB_CRON || '45 13 * * *';
+// Schedule for 2:00 PM IST
+const SCHEDULE = process.env.RTO_JOB_CRON || '0 14 * * *';
 
 
 const { ScheduledJobRecords } = require('../models');
