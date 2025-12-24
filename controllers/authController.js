@@ -11,9 +11,23 @@ exports.login = async (req, res) => {
     if (result.user && result.user.status && result.user.status.toLowerCase() !== 'active') {
       return res.status(403).json({ error: 'Account is deactivated.' });
     }
+    // Fetch user_options from di_user_options table
+    const { UserOptions } = require('../models');
+    let user_options = {};
+    if (result.user && result.user.id) {
+      const options = await UserOptions.findAll({ where: { user_id: result.user.id } });
+      for (const opt of options) {
+        let val = opt.option_value;
+        if (typeof val === 'string') {
+          if (val.toLowerCase() === 'true' || val === '1') val = true;
+          else if (val.toLowerCase() === 'false' || val === '0') val = false;
+        }
+        user_options[opt.option_key] = typeof val === 'boolean' ? val : !!val;
+      }
+    }
     // Log user info (as plain object, not instance)
-    console.table([result]);
-    res.json({ message: 'Login successful', ...result });
+    console.table([{...result, user_options_count: Object.keys(user_options).length}]);
+    res.json({ message: 'Login successful', ...result, user_options });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
