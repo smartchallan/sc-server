@@ -52,10 +52,7 @@ exports.getSummary = async (client_id, options = {}) => {
       rtoFields = {
         rc_regn_dt: d.rc_regn_dt || null,
         rc_fit_upto: { value: d.rc_fit_upto || null, ...parseDateStatus(d.rc_fit_upto) },
-        rc_tax_upto: {
-          value: d.rc_tax_upto ? formatDateToDDMMMYYYY(d.rc_tax_upto) : null,
-          ...parseDateStatus(d.rc_tax_upto)
-        },
+        rc_tax_upto: { value: d.rc_tax_upto || null, ...parseDateStatus(d.rc_tax_upto) },
         rc_pucc_upto: { value: d.rc_pucc_upto || null, ...parseDateStatus(d.rc_pucc_upto) },
         rc_insurance_upto: { value: d.rc_insurance_upto || null, ...parseDateStatus(d.rc_insurance_upto) }
       };
