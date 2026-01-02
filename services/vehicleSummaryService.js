@@ -56,16 +56,6 @@ exports.getSummary = async (client_id, options = {}) => {
           value: d.rc_tax_upto ? formatDateToDDMMMYYYY(d.rc_tax_upto) : null,
           ...parseDateStatus(d.rc_tax_upto)
         },
-        // Helper to format date to 'DD-MMM-YYYY' (e.g., 11-Dec-2026)
-        function formatDateToDDMMMYYYY(dateStr) {
-          if (!dateStr) return null;
-          const date = new Date(dateStr);
-          if (isNaN(date.getTime())) return dateStr; // fallback to original if invalid
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = date.toLocaleString('en-US', { month: 'short' });
-          const year = date.getFullYear();
-          return `${day}-${month}-${year}`;
-        }
         rc_pucc_upto: { value: d.rc_pucc_upto || null, ...parseDateStatus(d.rc_pucc_upto) },
         rc_insurance_upto: { value: d.rc_insurance_upto || null, ...parseDateStatus(d.rc_insurance_upto) }
       };
