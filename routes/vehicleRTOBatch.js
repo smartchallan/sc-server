@@ -32,6 +32,8 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
     }
     return results;
   }
+  // Pre-fetch token once for this client (will cache for batch)
+  await service.getRTODetails(vehicleNumbers[0], clientID); // This will cache token for clientID
   const results = await runWithConcurrencyAndDelay(
     vehicleNumbers,
     4, // batch size

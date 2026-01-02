@@ -2,10 +2,10 @@ const axios = require('axios');
 require('dotenv').config();
 
 
-// In-memory token cache: { token, expiresAt }
-let tokenCache = { token: null, expiresAt: 0 };
+// In-memory token cache: { [clientID]: { token, expiresAt } }
+const tokenCache = {};
 
-async function ulipLogin() {
+async function ulipLogin(clientID) {
   const url = process.env.ULIP_LOGIN_URL;
   const payload = {
     username: process.env.ULIP_USERNAME,
@@ -15,19 +15,20 @@ async function ulipLogin() {
   const response = await axios.post(url, payload, { headers });
   const token = response.data.response.id;
   // Store token with 20 hour expiry
-  tokenCache = {
+  tokenCache[clientID] = {
     token,
     expiresAt: Date.now() + 20 * 60 * 60 * 1000 // 20 hours
   };
   return token;
 }
 
-async function getValidToken() {
-  if (tokenCache.token && tokenCache.expiresAt > Date.now()) {
-    return tokenCache.token;
+async function getValidToken(clientID) {
+  const cached = tokenCache[clientID];
+  if (cached && cached.token && cached.expiresAt > Date.now()) {
+    return cached.token;
   }
   // No valid token, login
-  return await ulipLogin();
+  return await ulipLogin(clientID);
 }
 
 const xml2js = require('xml2js');
@@ -57,7 +58,7 @@ const VehicleRTOData = VehicleRTODataModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
 
 async function getRTODetails(vehicleNumber, clientID) {
-  const token = await getValidToken();
+  const token = await getValidToken(clientID);
   const url = process.env.ULIP_VAHAN_DETAILS_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,
