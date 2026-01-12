@@ -54,7 +54,9 @@ exports.getSummary = async (client_id, options = {}) => {
         rc_fit_upto: { value: d.rc_fit_upto || null, ...parseDateStatus(d.rc_fit_upto) },
         rc_tax_upto: { value: d.rc_tax_upto || null, ...parseDateStatus(d.rc_tax_upto) },
         rc_pucc_upto: { value: d.rc_pucc_upto || null, ...parseDateStatus(d.rc_pucc_upto) },
-        rc_insurance_upto: { value: d.rc_insurance_upto || null, ...parseDateStatus(d.rc_insurance_upto) }
+        rc_insurance_upto: { value: d.rc_insurance_upto || null, ...parseDateStatus(d.rc_insurance_upto) },
+        rc_permit_valid_upto: { value: d.rc_permit_valid_upto || null, ...parseDateStatus(d.rc_permit_valid_upto) },
+        rc_np_upto: { value: d.rc_np_upto || null, ...parseDateStatus(d.rc_np_upto) }
       };
     }
     result.push({
