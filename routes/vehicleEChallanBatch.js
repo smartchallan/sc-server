@@ -49,7 +49,6 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
         const disposedArr = Array.isArray(payload.Disposed_data) ? payload.Disposed_data : (Array.isArray(payload.disposed_data) ? payload.disposed_data : []);
 
         const JobModel = models.DiVehicleChallanJob;
-        const inserts = [];
 
         const parseIssuedAt = (val) => {
           if (!val) return null;
@@ -59,47 +58,46 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
           return m2.isValid() ? m2.tz('Asia/Kolkata').toDate() : null;
         };
 
+        // Only process pending challans. Skip disposedArr entirely.
         for (const item of pendingArr) {
           try {
+            const challanNo = item && (item.challan_no || item.challan_number);
+            if (!challanNo) {
+              console.warn('Skipping pending item without challan number for', vn);
+              continue;
+            }
             const issuedAt = parseIssuedAt(item && item.challan_date_time);
-            inserts.push(JobModel.create({
-              vehicle_number: vn,
-              client_id: clientID,
-              challan_number: (item && (item.challan_no || item.challan_number)) || null,
-              challan_data: item || null,
-              challan_status: 'pending',
-              challan_issued_at: issuedAt,
-              created_at: new Date(),
-              updated_at: new Date()
-            }));
-          } catch (e) {
-            console.error('Insert pending item failed for', vn, e);
-          }
-        }
+            const payloadData = item || null;
 
-        for (const item of disposedArr) {
-          try {
-            const issuedAt = parseIssuedAt(item && item.challan_date_time);
-            inserts.push(JobModel.create({
-              vehicle_number: vn,
-              client_id: clientID,
-              challan_number: (item && (item.challan_no || item.challan_number)) || null,
-              challan_data: item || null,
-              challan_status: 'disposed',
-              challan_issued_at: issuedAt,
-              created_at: new Date(),
-              updated_at: new Date()
-            }));
+            // Lookup by challan_number; update if exists, otherwise create
+            try {
+              const existing = await JobModel.findOne({ where: { challan_number: challanNo } });
+              if (existing) {
+                await existing.update({
+                  vehicle_number: vn,
+                  client_id: clientID,
+                  challan_data: payloadData,
+                  challan_status: 'pending',
+                  challan_issued_at: issuedAt,
+                  updated_at: new Date()
+                });
+              } else {
+                await JobModel.create({
+                  vehicle_number: vn,
+                  client_id: clientID,
+                  challan_number: challanNo,
+                  challan_data: payloadData,
+                  challan_status: 'pending',
+                  challan_issued_at: issuedAt,
+                  created_at: new Date(),
+                  updated_at: new Date()
+                });
+              }
+            } catch (dbErr) {
+              console.error('DB error upserting challan job for', vn, challanNo, dbErr);
+            }
           } catch (e) {
-            console.error('Insert disposed item failed for', vn, e);
-          }
-        }
-
-        if (inserts.length > 0) {
-          try {
-            await Promise.all(inserts);
-          } catch (e) {
-            console.error('Error inserting di_vehicle_challan_job rows for', vn, e);
+            console.error('Process pending item failed for', vn, e);
           }
         }
 
