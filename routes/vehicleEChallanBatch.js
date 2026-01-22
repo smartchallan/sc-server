@@ -58,6 +58,11 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
           return m2.isValid() ? m2.tz('Asia/Kolkata').toDate() : null;
         };
 
+        const parseBool = (v) => {
+          if (v === true || v === 1 || v === '1' || String(v).toLowerCase() === 'true') return true;
+          return false;
+        };
+
         // Only process pending challans. Skip disposedArr entirely.
         for (const item of pendingArr) {
           try {
@@ -68,6 +73,10 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
             }
             const issuedAt = parseIssuedAt(item && item.challan_date_time);
             const payloadData = item || null;
+            const stateCode = item && (item.state_code || item.state) || null;
+            const rtoName = item && (item.rto_distric_name || item.rto_district_name || item.rto_district) || null;
+            const sentToRegCourt = parseBool(item && item.sent_to_reg_court);
+            const sentToVirtualCourt = parseBool(item && item.sent_to_virtual_court);
 
             // Lookup by challan_number; update if exists, otherwise create
             try {
@@ -79,6 +88,10 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   challan_data: payloadData,
                   challan_status: 'pending',
                   challan_issued_at: issuedAt,
+                  state_code: stateCode,
+                  rto_distric_name: rtoName,
+                  sent_to_reg_court: sentToRegCourt,
+                  sent_to_virtual_court: sentToVirtualCourt,
                   updated_at: new Date()
                 });
               } else {
@@ -89,6 +102,10 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   challan_data: payloadData,
                   challan_status: 'pending',
                   challan_issued_at: issuedAt,
+                  state_code: stateCode,
+                  rto_distric_name: rtoName,
+                  sent_to_reg_court: sentToRegCourt,
+                  sent_to_virtual_court: sentToVirtualCourt,
                   created_at: new Date(),
                   updated_at: new Date()
                 });
