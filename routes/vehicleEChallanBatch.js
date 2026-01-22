@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const vehicleChallanService = require('../services/vehicleChallanService');
+const models = require('../models');
+const momentTz = require('moment-timezone');
 
 // POST /getvehicleechallandata/batch
 // Body: { vehicleNumbers: ["KA01AB1234", ...], clientID: 123, exportCsv: true }
@@ -40,6 +42,67 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
     async (vn) => {
       try {
         const data = await service.getChallanDetails(vn, clientID);
+        // service may return { success: true, data: { Pending_data, Disposed_data } } or the raw payload
+        const payload = (data && data.success && data.data) ? data.data : data || {};
+
+        const pendingArr = Array.isArray(payload.Pending_data) ? payload.Pending_data : (Array.isArray(payload.pending_data) ? payload.pending_data : []);
+        const disposedArr = Array.isArray(payload.Disposed_data) ? payload.Disposed_data : (Array.isArray(payload.disposed_data) ? payload.disposed_data : []);
+
+        const JobModel = models.DiVehicleChallanJob;
+        const inserts = [];
+
+        const parseIssuedAt = (val) => {
+          if (!val) return null;
+          const m = momentTz(val, 'DD-MM-YYYY HH:mm:ss', true);
+          if (m.isValid()) return m.tz('Asia/Kolkata').toDate();
+          const m2 = momentTz(val);
+          return m2.isValid() ? m2.tz('Asia/Kolkata').toDate() : null;
+        };
+
+        for (const item of pendingArr) {
+          try {
+            const issuedAt = parseIssuedAt(item && item.challan_date_time);
+            inserts.push(JobModel.create({
+              vehicle_number: vn,
+              client_id: clientID,
+              challan_number: (item && (item.challan_no || item.challan_number)) || null,
+              challan_data: item || null,
+              challan_status: 'pending',
+              challan_issued_at: issuedAt,
+              created_at: new Date(),
+              updated_at: new Date()
+            }));
+          } catch (e) {
+            console.error('Insert pending item failed for', vn, e);
+          }
+        }
+
+        for (const item of disposedArr) {
+          try {
+            const issuedAt = parseIssuedAt(item && item.challan_date_time);
+            inserts.push(JobModel.create({
+              vehicle_number: vn,
+              client_id: clientID,
+              challan_number: (item && (item.challan_no || item.challan_number)) || null,
+              challan_data: item || null,
+              challan_status: 'disposed',
+              challan_issued_at: issuedAt,
+              created_at: new Date(),
+              updated_at: new Date()
+            }));
+          } catch (e) {
+            console.error('Insert disposed item failed for', vn, e);
+          }
+        }
+
+        if (inserts.length > 0) {
+          try {
+            await Promise.all(inserts);
+          } catch (e) {
+            console.error('Error inserting di_vehicle_challan_job rows for', vn, e);
+          }
+        }
+
         return { vehicleNumber: vn, success: true, data };
       } catch (err) {
         return { vehicleNumber: vn, success: false, error: err.message };

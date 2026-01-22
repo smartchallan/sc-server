@@ -41,6 +41,7 @@ const UserSettings = UserSettingsModel(sequelize);
 const UserVehicleRtoData = UserVehicleRtoDataModel(sequelize);
 const VehicleRTOData = VehicleRTODataModel(sequelize);
 const VehicleChallan = VehicleChallanModel(sequelize);
+const DiVehicleChallanJobModel = require('./di_vehicle_challan_job');
 const CartModel = require('./cart');
 const Cart = CartModel(sequelize);
 const CartLineItemModel = require('./cartLineItem');
@@ -52,6 +53,7 @@ const UserBilling = UserBillingModel(sequelize);
 const UserOptions = DIUserOptionsModel(sequelize);
 const FailedRecords = DIFailedRecordsModel(sequelize);
 const ScheduledJobRecords = DIScheduledJobRecordsModel(sequelize);
+const DiVehicleChallanJob = DiVehicleChallanJobModel(sequelize);
 
 module.exports = {
   sequelize,
@@ -63,6 +65,7 @@ module.exports = {
   UserVehicleRtoData,
   VehicleRTOData,
   VehicleChallan,
+  DiVehicleChallanJob,
   Cart,
   CartLineItem,
   UserBilling,
