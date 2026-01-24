@@ -22,6 +22,7 @@ const {
   Cart,
   UserBilling
 } = require('./models');
+const { DiDriverData } = require('./models');
 
 // Setup associations (if not already set)
 if (!User.associations.meta) {
@@ -38,6 +39,8 @@ const models = {
   User, UserMeta, UserVehicle, UserVehicles, UserSettings, 
   UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling 
 };
+
+models.DiDriverData = DiDriverData;
 
 const app = express();
 
@@ -76,6 +79,7 @@ const vehicleEChallanRouter = require('./routes/vehicleEChallan');
 const vehicleEChallanBatchRouter = require('./routes/vehicleEChallanBatch');
 const driverDataRouter = require('./routes/driverData');
 const fastagDataRouter = require('./routes/fastagData');
+const saveDriveDataRouter = require('./routes/saveDriveData')(models);
 const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
 const adminDataRouter = require('./routes/adminData')(models);
@@ -109,6 +113,7 @@ app.use('/getvehicleechallandata', vehicleEChallanRouter);
 app.use('/getvehicleechallandata/batch', vehicleEChallanBatchRouter);
 app.use('/getdriverdata', driverDataRouter);
 app.use('/getvehiclefastagdata', fastagDataRouter);
+app.use('/savedrivedata', saveDriveDataRouter);
 app.use('/uservehicle', userVehicleRouter);
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);

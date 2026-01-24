@@ -11,6 +11,7 @@ const UserBillingModel = require('./user_billing');
 const DIUserOptionsModel = require('./di_user_options');
 const DIFailedRecordsModel = require('./di_failed_records');
 const DIScheduledJobRecordsModel = require('./di_scheduled_job_records');
+const DIDriverDataModel = require('./di_driver_data');
 
 require('dotenv').config();
 
@@ -54,6 +55,7 @@ const UserOptions = DIUserOptionsModel(sequelize);
 const FailedRecords = DIFailedRecordsModel(sequelize);
 const ScheduledJobRecords = DIScheduledJobRecordsModel(sequelize);
 const DiVehicleChallanJob = DiVehicleChallanJobModel(sequelize);
+const DiDriverData = DIDriverDataModel(sequelize);
 
 module.exports = {
   sequelize,
@@ -65,6 +67,7 @@ module.exports = {
   UserVehicleRtoData,
   VehicleRTOData,
   VehicleChallan,
+  DiDriverData,
   DiVehicleChallanJob,
   Cart,
   CartLineItem,
