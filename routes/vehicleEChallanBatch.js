@@ -118,6 +118,61 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
           }
         }
 
+        // Also process disposed challans and insert/update with status 'disposed'
+        for (const item of disposedArr) {
+          try {
+            const challanNo = item && (item.challan_no || item.challan_number);
+            if (!challanNo) {
+              console.warn('Skipping disposed item without challan number for', vn);
+              continue;
+            }
+            const issuedAt = parseIssuedAt(item && item.challan_date_time);
+            const payloadData = item || null;
+            const stateCode = item && (item.state_code || item.state) || null;
+            const rtoName = item && (item.rto_distric_name || item.rto_district_name || item.rto_district) || null;
+            const sentToRegCourt = parseBool(item && item.sent_to_reg_court);
+            const sentToVirtualCourt = parseBool(item && item.sent_to_virtual_court);
+
+            // Lookup by challan_number; update if exists, otherwise create
+            try {
+              const existing = await JobModel.findOne({ where: { challan_number: challanNo } });
+              if (existing) {
+                await existing.update({
+                  vehicle_number: vn,
+                  client_id: clientID,
+                  challan_data: payloadData,
+                  challan_status: 'disposed',
+                  challan_issued_at: issuedAt,
+                  state_code: stateCode,
+                  rto_distric_name: rtoName,
+                  sent_to_reg_court: sentToRegCourt,
+                  sent_to_virtual_court: sentToVirtualCourt,
+                  updated_at: new Date()
+                });
+              } else {
+                await JobModel.create({
+                  vehicle_number: vn,
+                  client_id: clientID,
+                  challan_number: challanNo,
+                  challan_data: payloadData,
+                  challan_status: 'disposed',
+                  challan_issued_at: issuedAt,
+                  state_code: stateCode,
+                  rto_distric_name: rtoName,
+                  sent_to_reg_court: sentToRegCourt,
+                  sent_to_virtual_court: sentToVirtualCourt,
+                  created_at: new Date(),
+                  updated_at: new Date()
+                });
+              }
+            } catch (dbErr) {
+              console.error('DB error upserting disposed challan job for', vn, challanNo, dbErr);
+            }
+          } catch (e) {
+            console.error('Process disposed item failed for', vn, e);
+          }
+        }
+
         return { vehicleNumber: vn, success: true, data };
       } catch (err) {
         return { vehicleNumber: vn, success: false, error: err.message };

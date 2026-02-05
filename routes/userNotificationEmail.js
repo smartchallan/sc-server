@@ -11,8 +11,8 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, error: 'user_id, user_role, notification_type and value are required' });
     }
 
-    // Check for existing record (by user, type and value)
-    const existing = await DiUserNotificationReceivers.findOne({ where: { user_id, notification_type, value } });
+    // Check for existing record (by user, type, value) where status is active (1)
+    const existing = await DiUserNotificationReceivers.findOne({ where: { user_id, notification_type, value, status: 1 } });
     if (existing) {
       return res.json(false);
     }

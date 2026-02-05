@@ -27,7 +27,9 @@ exports.login = async (req, res) => {
     }
     // Log user info (as plain object, not instance)
     console.table([{...result, user_options_count: Object.keys(user_options).length}]);
-    res.json({ message: 'Login successful', ...result, user_options });
+    // Include parent_id at top-level for convenience (falls back to null)
+    const parent_id = result && result.user && typeof result.user.parent_id !== 'undefined' ? result.user.parent_id : null;
+    res.json({ message: 'Login successful', parent_id, ...result, user_options });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
