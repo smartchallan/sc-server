@@ -23,7 +23,7 @@ async function runVehicleEChallanJob() {
       const vehicleNumbers = vehicles.map(v => v.vehicle_number);
       if (vehicleNumbers.length === 0) continue;
       // 3. Call the batch function from vehicleEChallanBatch.js (not API)
-      await vehicleEChallanBatch.processBatch({
+      await vehicleEChallanBatch.processChallanBatch({
         vehicleNumbers,
         clientID: client.id,
         exportCsv: true
