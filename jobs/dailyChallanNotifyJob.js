@@ -14,7 +14,7 @@ const config = require('../config/config');
 const momentTz = require('moment-timezone');
 const { sendMail } = require('../services/emailService');
 
-async function dailyChallanNotifyJob(daysRange = 2) {
+async function dailyChallanNotifyJob(daysRange = 4) {
 	try {
 		// 1) Fetch active users with role 'client'
 		const clients = await User.findAll({
@@ -125,7 +125,8 @@ async function dailyChallanNotifyJob(daysRange = 2) {
 					client_id: clientId,
 					challan_issued_at: { [Op.between]: [startIST, endIST] }
 				},
-				attributes: ['id', 'vehicle_number', 'challan_number', 'challan_issued_at', 'challan_data'],
+				attributes: ['id', 'vehicle_number', 'challan_number', 'challan_issued_at', 'challan_data', 'challan_status'],
+				order: [[ 'challan_issued_at', 'DESC' ]],
 				raw: true
 			});
 
@@ -142,9 +143,13 @@ async function dailyChallanNotifyJob(daysRange = 2) {
 						try { parsed = typeof c.challan_data === 'string' ? JSON.parse(c.challan_data) : c.challan_data; } catch (e) { parsed = {}; }
 					}
 					// Use fine_imposed from challan_data as amount when present
-					const amount = parsed.fine_imposed || parsed.amount || parsed.challan_amount || c.amount || '';
-					// Always show status as pending for notification
-					const status = 'pending';
+					const rawAmount = parsed.fine_imposed || parsed.amount || parsed.challan_amount || c.amount || '';
+					const amount = (rawAmount === null || rawAmount === undefined) ? '' : String(rawAmount).replace(/[^0-9.\-]/g, '');
+					// Show actual status from DB (pending/disposed) and color-code it
+					const status = c.challan_status || 'pending';
+					const statusLower = String(status).toLowerCase();
+					const statusColor = statusLower === 'disposed' ? '#16a34a' : (statusLower === 'pending' ? '#dc2626' : '#374151');
+					const statusHtml = `<span style="color:${statusColor};font-weight:700;">${status}</span>`;
 					return `
 						<tr style="background:${idx % 2 === 0 ? '#f9fafb' : '#fff'};">
 						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${idx + 1}</td>
@@ -152,11 +157,37 @@ async function dailyChallanNotifyJob(daysRange = 2) {
 						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${c.challan_number || ''}</td>
 						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${issuedAt}</td>
 						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${amount}</td>
-						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${status}</td>
+						  <td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:left;">${statusHtml}</td>
 						</tr>`;
-				}).join('\n');
+							}).join('\n');
 
-								const html = `
+							// Calculate totals: number of challans in range and total pending amount for the picked challans only
+							const issuedCount = dvChallans.length;
+							const parseAmount = (cdata) => {
+								if (!cdata) return 0;
+								let parsed = cdata;
+								if (typeof cdata === 'string') {
+									try { parsed = JSON.parse(cdata); } catch (e) { parsed = {}; }
+								}
+								const raw = parsed.fine_imposed || parsed.amount || parsed.challan_amount || parsed.amount_due || 0;
+								const num = raw === null || raw === undefined ? 0 : Number(String(raw).replace(/[^0-9.\-]/g, ''));
+								return isNaN(num) ? 0 : num;
+							};
+							// Sum only the picked challans (those in dvChallans) that are currently pending
+							const totalPendingAmount = dvChallans.reduce((sum, r) => {
+								if (!r) return sum;
+								const status = (r.challan_status || 'pending');
+								if (String(status).toLowerCase() === 'pending') {
+									return sum + parseAmount(r.challan_data);
+								}
+								return sum;
+							}, 0);
+							const formatMoney = (n) => n.toLocaleString('en-IN');
+							const summaryHtml = `
+								<p style="margin:0 0 12px 0;color:#4b5563;">You have total <strong>${issuedCount}</strong> challan(s) issued in last <strong>${daysRange}</strong> day(s). Total pending challans amount for this duration is <strong>Rs. ${formatMoney(totalPendingAmount)}</strong>. For more details, please login to Smart Challan.</p>
+							`;
+
+							const html = `
 									<div style="font-family:'Segoe UI',Roboto,Arial,sans-serif;max-width:820px;margin:auto;padding:0;background:#f3f6f9;border-radius:10px;overflow:hidden;border:1px solid #e6eef8;">
 										<div style="background:linear-gradient(90deg,#0ea5b7,#3182ce);padding:18px 24px;text-align:left;color:#fff;">
 											<div style="display:flex;align-items:center;gap:12px;">
@@ -166,6 +197,7 @@ async function dailyChallanNotifyJob(daysRange = 2) {
 										<div style="padding:20px 24px;background:#ffffff;font-size:15px;color:#1f2937;">
 											<p style="margin:0 0 12px 0;">Hi <strong>${u.name || 'User'}</strong>,</p>
 											<p style="margin:0 0 16px 0;color:#4b5563;">The following challan(s) were issued for your vehicles between <strong>${startIST.format('YYYY-MM-DD')}</strong> and <strong>${endIST.format('YYYY-MM-DD')}</strong> (IST).</p>
+											${summaryHtml}
 
 											<div style="border:1px solid #eef2f6;border-radius:8px;padding:12px;overflow-x:auto;">
 												<table style="width:100%;border-collapse:separate;border-spacing:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;">
@@ -198,8 +230,7 @@ async function dailyChallanNotifyJob(daysRange = 2) {
 										<div style="padding:12px 20px;background:#f8fafc;font-size:12px;color:#6b7280;text-align:center;">&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'SmartChallan'}. All rights reserved.</div>
 									</div>`;
 
-				// const to = (u.configured_emails || []).join(',');
-				const to = 'smartchallan@gmail.com'; // TEMP TESTING EMAIL OVERRIDE
+							const to = (u.configured_emails || []).join(',') || 'smartchallan@gmail.com'; // use configured emails or fallback to testing override
 				if (to) {
 					try {
 						await sendMail({ to, subject: `Challan(s) issued - ${process.env.COMPANY_NAME || 'SmartChallan'}`, html });
