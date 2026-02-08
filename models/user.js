@@ -11,6 +11,7 @@ module.exports = (sequelize) => {
     status: { type: DataTypes.STRING, defaultValue: 'active' },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    last_login_at: { type: DataTypes.DATE, allowNull: true },
     admin_id: { type: DataTypes.INTEGER, allowNull: true },
     dealer_id: { type: DataTypes.INTEGER, allowNull: true },
     client_id: { type: DataTypes.INTEGER, allowNull: true }

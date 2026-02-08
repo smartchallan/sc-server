@@ -188,7 +188,7 @@ async function dailyChallanNotifyJob(daysRange = 4) {
 							`;
 
 							const html = `
-									<div style="font-family:'Segoe UI',Roboto,Arial,sans-serif;max-width:820px;margin:auto;padding:0;background:#f3f6f9;border-radius:10px;overflow:hidden;border:1px solid #e6eef8;">
+									<div style="font-family:'Segoe UI',Roboto,Arial,sans-serif;max-width:820px;margin:auto;padding:0;background:#f3f6f9;border-radius:10px;overflow:visible;border:1px solid #e6eef8;">
 										<div style="background:linear-gradient(90deg,#0ea5b7,#3182ce);padding:18px 24px;text-align:left;color:#fff;">
 											<div style="display:flex;align-items:center;gap:12px;">
 												<img src="${process.env.COMPANY_LOGO_URL || ''}" alt="SmartChallan" style="height:48px;object-fit:contain;"/>
@@ -199,8 +199,8 @@ async function dailyChallanNotifyJob(daysRange = 4) {
 											<p style="margin:0 0 16px 0;color:#4b5563;">The following challan(s) were issued for your vehicles between <strong>${startIST.format('YYYY-MM-DD')}</strong> and <strong>${endIST.format('YYYY-MM-DD')}</strong> (IST).</p>
 											${summaryHtml}
 
-											<div style="border:1px solid #eef2f6;border-radius:8px;padding:12px;overflow-x:auto;">
-												<table style="width:100%;border-collapse:separate;border-spacing:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;">
+											<div style="border:1px solid #eef2f6;border-radius:8px;padding:12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;-ms-overflow-style:auto;touch-action:pan-x;display:block;width:100%;">
+												<table style="display:block;width:800px;min-width:720px;border-collapse:separate;border-spacing:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;">
 													<thead>
 														<tr style="background:#f8fafc;">
 															<th style="padding:10px 12px;border-bottom:2px solid #e6eef8;text-align:left;font-weight:600;font-size:13px;">S.no.</th>

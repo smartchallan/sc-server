@@ -11,6 +11,18 @@ exports.login = async (req, res) => {
     if (result.user && result.user.status && result.user.status.toLowerCase() !== 'active') {
       return res.status(403).json({ error: 'Account is deactivated.' });
     }
+    // Update last_login_at for successful login
+    try {
+      const { User } = require('../models');
+      if (result.user && result.user.id) {
+        const now = new Date();
+        await User.update({ last_login_at: now }, { where: { id: result.user.id } });
+        // reflect updated value in response object
+        result.user.last_login_at = now;
+      }
+    } catch (updErr) {
+      console.error('Failed updating last_login_at for user:', updErr);
+    }
     // Fetch user_options from di_user_options table
     const { UserOptions } = require('../models');
     let user_options = {};
