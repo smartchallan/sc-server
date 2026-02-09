@@ -109,6 +109,9 @@ async function dailyChallanNotifyJob(daysRange = 4) {
 		console.log('Fetching challans with challan_issued_at between', startIST.format(), '(IST) and', endIST.format(), '(IST)');
 
 		const clientChallanResults = [];
+		// Track which recipient sets we've already emailed to avoid duplicate sends
+		const sentRecipientKeys = new Set();
+		const normalizeEmail = (e) => String(e || '').trim().toLowerCase();
 		for (const u of eligibleWithEmails) {
 			// Treat only null/undefined/empty-string as missing. This allows numeric 0 or other
 			// falsy-but-valid values to pass through.
@@ -230,15 +233,28 @@ async function dailyChallanNotifyJob(daysRange = 4) {
 										<div style="padding:12px 20px;background:#f8fafc;font-size:12px;color:#6b7280;text-align:center;">&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'SmartChallan'}. All rights reserved.</div>
 									</div>`;
 
-							const to = (u.configured_emails || []).join(',') || 'smartchallan@gmail.com'; // use configured emails or fallback to testing override
-				if (to) {
-					try {
-						await sendMail({ to, subject: `Challan(s) issued - ${process.env.COMPANY_NAME || 'SmartChallan'}`, html });
-						console.log(`Sent challan email to ${to} for client ${clientId}`);
-					} catch (err) {
-						console.error(`Failed to send challan email to ${to} for client ${clientId}:`, err);
-					}
-				}
+							// Build deduplicated recipient list
+							const rawEmails = Array.isArray(u.configured_emails) ? u.configured_emails : [];
+							let emails = rawEmails.map(normalizeEmail).filter(e => e);
+							// fallback to environment email if none
+							if (emails.length === 0) emails = [(process.env.FALLBACK_ADMIN_EMAIL || 'smartchallan@gmail.com')];
+							// unique & stable ordering
+							emails = Array.from(new Set(emails)).sort();
+							const recipientKey = emails.join(',');
+							if (sentRecipientKeys.has(recipientKey)) {
+								console.log(`Skipping send for client ${clientId} - recipients already emailed: ${recipientKey}`);
+								continue;
+							}
+							sentRecipientKeys.add(recipientKey);
+							const to = recipientKey;
+							if (to) {
+								try {
+									await sendMail({ to, subject: `Challan(s) issued - ${process.env.COMPANY_NAME || 'SmartChallan'}`, html });
+									console.log(`Sent challan email to ${to} for client ${clientId}`);
+								} catch (err) {
+									console.error(`Failed to send challan email to ${to} for client ${clientId}:`, err);
+								}
+							}
 			}
 
 			

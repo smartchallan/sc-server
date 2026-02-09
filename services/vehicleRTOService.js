@@ -82,12 +82,28 @@ async function getRTODetails(vehicleNumber, clientID) {
   const moment = require('moment');
   const normalizeDate = (val) => {
     if (!val && val !== 0) return null;
+    // Handle moment-like objects returned from some parsers
+    if (typeof val === 'object' && val !== null) {
+      if (val._isAMomentObject && typeof val.format === 'function') {
+        try { return val.format('YYYY-MM-DD'); } catch (e) { return null; }
+      }
+      // If the object contains an original input string, try that
+      if (val._i) {
+        val = val._i;
+      } else {
+        return null;
+      }
+    }
+
     const s = String(val).trim();
     if (!s) return null;
+    // If value has no digits, treat as non-date (e.g. 'LTT')
+    if (!/[0-9]/.test(s)) return null;
+
     // Common formats seen in RTO responses: 26-Jun-2026, 24-Oct-2027, 2026-06-26, etc.
     const formats = ['DD-MMM-YYYY','DD-MMM-YY','DD-MM-YYYY','YYYY-MM-DD','DD/MM/YYYY'];
     let m = moment(s, formats, true);
-    if (!m.isValid()) m = moment(s);
+    if (!m.isValid()) m = moment(s, moment.ISO_8601, true);
     if (!m.isValid()) return null;
     return m.format('YYYY-MM-DD');
   };
