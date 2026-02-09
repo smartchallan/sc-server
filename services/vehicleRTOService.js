@@ -77,18 +77,45 @@ async function getRTODetails(vehicleNumber, clientID) {
   const existing = await VehicleRTOData.findOne({
     where: { vehicle_number: vehicleNumber, client_id: clientID }
   });
+
+  // Normalize date strings to YYYY-MM-DD for DATEONLY columns
+  const moment = require('moment');
+  const normalizeDate = (val) => {
+    if (!val && val !== 0) return null;
+    const s = String(val).trim();
+    if (!s) return null;
+    // Common formats seen in RTO responses: 26-Jun-2026, 24-Oct-2027, 2026-06-26, etc.
+    const formats = ['DD-MMM-YYYY','DD-MMM-YY','DD-MM-YYYY','YYYY-MM-DD','DD/MM/YYYY'];
+    let m = moment(s, formats, true);
+    if (!m.isValid()) m = moment(s);
+    if (!m.isValid()) return null;
+    return m.format('YYYY-MM-DD');
+  };
+
+  // Attempt to locate VehicleDetails object robustly
+  const vd = (jsonResult && (jsonResult.VehicleDetails || jsonResult.vehicleDetails || jsonResult.vehicledetails)) || jsonResult || {};
+  const insurance_exp_val = normalizeDate(vd.rc_insurance_upto || vd.rc_insurance_upto_date || vd.rc_insurance_upto);
+  const fitness_exp_val = normalizeDate(vd.rc_fit_upto || vd.rc_fit_upto_date || vd.rc_fit_upto);
+  const pollution_exp_val = normalizeDate(vd.rc_pucc_upto || vd.rc_pucc_upto_date || vd.rc_pucc_upto);
+  const road_tax_exp_val = normalizeDate(vd.rc_tax_upto || vd.rc_tax_upto_date || vd.rc_tax_upto);
+
+  const savePayload = {
+    rto_data: jsonResult,
+    insurance_exp: insurance_exp_val,
+    road_tax_exp: road_tax_exp_val,
+    fitness_exp: fitness_exp_val,
+    pollution_exp: pollution_exp_val,
+    updated_at: new Date()
+  };
+
   if (existing) {
-    await existing.update({
-      rto_data: jsonResult,
-      updated_at: new Date()
-    });
+    await existing.update(savePayload);
   } else {
     await VehicleRTOData.create({
       vehicle_number: vehicleNumber,
       client_id: clientID,
-      rto_data: jsonResult,
-      created_at: new Date(),
-      updated_at: new Date()
+      ...savePayload,
+      created_at: new Date()
     });
   }
 

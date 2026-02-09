@@ -9,6 +9,7 @@ const sequelize = new Sequelize(
   process.env.PG_PASSWORD || '',
   {
     host: process.env.PG_HOST || 'localhost',
+    port: process.env.PG_PORT || 5432,
     dialect: 'postgres',
     logging: false
   }
@@ -29,4 +30,45 @@ exports.registerClient = async (data) => {
   data.role = 'client';
   // if (data.email) data.email = bcrypt.hashSync(data.email, 10);
   return await User.create(data);
+};
+
+/**
+ * Recursively fetch active users whose parent_id matches the provided id.
+ * Returns an array of user objects with a `children` array for nested clients.
+ */
+exports.getClientNetwork = async (parentId) => {
+  console.log('Fetching client network for parentId:', parentId);
+  const visited = new Set();
+  // Use the application's main models to avoid creating a separate DB connection
+  const appModels = require('../models');
+  const AppUser = appModels.User;
+
+  const fetchChildren = async (pid) => {
+    try {
+      if (pid == null) return [];
+      if (visited.has(String(pid))) return [];
+      visited.add(String(pid));
+
+      const children = await AppUser.findAll({
+        where: { parent_id: pid, status: 'active' },
+        attributes: ['id','name','email','role','status','parent_id','client_id','last_login_at','created_at'],
+        raw: true
+      });
+
+      console.log(`Found ${children.length} children for parent_id ${pid}:`, children.map(c => c.id));
+
+      const results = [];
+      for (const c of children) {
+        const nested = await fetchChildren(c.id);
+        results.push({ ...c, children: nested });
+      }
+      return results;
+    } catch (err) {
+      console.error('Error fetching children for parent_id', pid, err && err.stack ? err.stack : err);
+      throw err;
+    }
+  };
+
+  // Start with direct children of provided parentId
+  return await fetchChildren(parentId);
 };

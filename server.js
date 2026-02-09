@@ -95,6 +95,7 @@ const testEmailRouter = require('./routes/testEmail');
 const cartRouter = require('./routes/cart');
 const vehicleReportRouter = require('./routes/getVehicleReport');
 const userNotificationEmailRouter = require('./routes/userNotificationEmail');
+const getClientNetworkRouter = require('./routes/getClientNetwork');
 
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
@@ -106,6 +107,9 @@ app.use('/useroptions', userOptionsRouter);
 app.use('/testemail', testEmailRouter);
 app.use('/cart', cartRouter);
 app.use('/usernotificationemail', userNotificationEmailRouter);
+
+// New endpoint - get client network (separate module)
+app.use('/getclientnetwork', getClientNetworkRouter);
 
 app.use('/getvehiclereport', vehicleReportRouter);
 
