@@ -49,18 +49,30 @@ exports.getClientNetwork = async (parentId) => {
       if (visited.has(String(pid))) return [];
       visited.add(String(pid));
 
-      const children = await AppUser.findAll({
-        where: { parent_id: pid, status: 'active' },
-        attributes: ['id','name','email','role','status','parent_id','client_id','last_login_at','created_at'],
-        raw: true
-      });
+         const children = await AppUser.findAll({
+           where: { parent_id: pid },
+           // Exclude role, client_id, dealer_id, admin_id from returned attributes
+           attributes: ['id','name','email','status','parent_id','last_login_at','created_at'],
+           raw: true
+         });
 
       console.log(`Found ${children.length} children for parent_id ${pid}:`, children.map(c => c.id));
 
       const results = [];
       for (const c of children) {
         const nested = await fetchChildren(c.id);
-        results.push({ ...c, children: nested });
+           // Build a sanitized object to ensure sensitive/unused fields are not returned
+           const item = {
+             id: c.id,
+             name: c.name,
+             email: c.email,
+             status: c.status,
+             parent_id: c.parent_id,
+             last_login_at: c.last_login_at,
+             created_at: c.created_at,
+             children: nested
+           };
+           results.push(item);
       }
       return results;
     } catch (err) {
