@@ -68,6 +68,8 @@ app.use((req, res, next) => {
 require('./jobs/vehicleEChallanBatchScheduler');
 require('./jobs/dailyChallanNotifyScheduler');
 require('./jobs/vehicleRTOBatchScheduler');
+// Load expired insurance notification scheduler
+require('./jobs/expiredInsuranceNotificationScheduler');
 
 // Register update vehicle status route
 const updateVehicleRouter = require('./routes/updateVehicle')(models);
