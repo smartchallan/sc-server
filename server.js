@@ -49,7 +49,15 @@ app.locals.models = models;
 app.use(express.json());
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://app.smartchallan.com', 'https://smartchallan.technoton.co.in', 'http://smartchallan.technoton.co.in', 'https://stage.smartchallan.com'],
+  origin: [
+    'http://localhost:5173', 
+    'https://app.smartchallan.com', 
+    'https://smartchallan.technoton.co.in', 
+    'http://smartchallan.technoton.co.in', 
+    'https://stage.smartchallan.com',
+    'http://challan.nigraani.com',
+    'https://challan.nigraani.com'
+  ],
   credentials: true
 }));
 
