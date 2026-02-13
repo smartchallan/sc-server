@@ -23,25 +23,34 @@ exports.login = async (req, res) => {
     } catch (updErr) {
       console.error('Failed updating last_login_at for user:', updErr);
     }
-    // Fetch user_options from di_user_options table
+    // Fetch user_options from di_user_options table and return raw values
     const { UserOptions } = require('../models');
     let user_options = {};
     if (result.user && result.user.id) {
       const options = await UserOptions.findAll({ where: { user_id: result.user.id } });
       for (const opt of options) {
-        let val = opt.option_value;
-        if (typeof val === 'string') {
-          if (val.toLowerCase() === 'true' || val === '1') val = true;
-          else if (val.toLowerCase() === 'false' || val === '0') val = false;
-        }
-        user_options[opt.option_key] = typeof val === 'boolean' ? val : !!val;
+        user_options[opt.option_key] = opt.option_value;
       }
     }
     // Log user info (as plain object, not instance)
     console.table([{...result, user_options_count: Object.keys(user_options).length}]);
     // Include parent_id at top-level for convenience (falls back to null)
     const parent_id = result && result.user && typeof result.user.parent_id !== 'undefined' ? result.user.parent_id : null;
-    res.json({ message: 'Login successful', parent_id, ...result, user_options });
+
+    // Determine whether this user has downstream clients (is referenced as parent_id)
+    let hasClients = false;
+    try {
+      if (result && result.user && result.user.id) {
+        const { User } = require('../models');
+        const count = await User.count({ where: { parent_id: result.user.id } });
+        hasClients = !!count;
+      }
+    } catch (hcErr) {
+      console.error('Failed checking hasClients for user:', hcErr);
+      hasClients = false;
+    }
+
+    res.json({ message: 'Login successful', parent_id, hasClients, ...result, user_options });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

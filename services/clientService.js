@@ -61,18 +61,30 @@ exports.getClientNetwork = async (parentId) => {
       const results = [];
       for (const c of children) {
         const nested = await fetchChildren(c.id);
-           // Build a sanitized object to ensure sensitive/unused fields are not returned
-           const item = {
-             id: c.id,
-             name: c.name,
-             email: c.email,
-             status: c.status,
-             parent_id: c.parent_id,
-             last_login_at: c.last_login_at,
-             created_at: c.created_at,
-             children: nested
-           };
-           results.push(item);
+        // Fetch user_meta for this child (if any) and include as `user_meta`
+        let user_meta = null;
+        try {
+          const AppUserMeta = appModels.UserMeta;
+          if (AppUserMeta) {
+            user_meta = await AppUserMeta.findOne({ where: { user_id: c.id }, raw: true });
+          }
+        } catch (metaErr) {
+          console.error('Error fetching user_meta for user', c.id, metaErr && metaErr.stack ? metaErr.stack : metaErr);
+          user_meta = null;
+        }
+        // Build a sanitized object to ensure sensitive/unused fields are not returned
+        const item = {
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          status: c.status,
+          parent_id: c.parent_id,
+          last_login_at: c.last_login_at,
+          created_at: c.created_at,
+          user_meta: user_meta,
+          children: nested
+        };
+        results.push(item);
       }
       return results;
     } catch (err) {

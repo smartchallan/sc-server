@@ -71,10 +71,7 @@ async function registerUser(data) {
         email: data.email,
         password: hashedPassword,
         role: data.userType,
-        dealer_id: data.dealer_id || null,
-        client_id: data.client_id || null,
-        admin_id: data.admin_id || null,
-        dealer_id: data.dealer_id || null
+        parent_id: typeof data.parent_id !== 'undefined' ? data.parent_id : null
     };
 
     // Create user record
