@@ -8,10 +8,10 @@ module.exports = (UserVehicle) => {
 
   // Register a new vehicle
   router.post('/register', async (req, res) => {
-    const { vehicle_number, chasis_number, engine_number, client_id, dealer_id, admin_id } = req.body;
+    const { vehicle_number, chasis_number, engine_number, client_id } = req.body;
 
     // Logging request
-    console.table([{ vehicle_number, chasis_number, engine_number, client_id, dealer_id, admin_id }]);
+    console.table([{ vehicle_number, chasis_number, engine_number, client_id }]);
 
     try {
       const service = serviceFactory(UserVehicle);

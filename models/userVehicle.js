@@ -7,8 +7,7 @@ module.exports = (sequelize) => {
     chasis_number: { type: DataTypes.STRING, allowNull: true },
     engine_number: { type: DataTypes.STRING, allowNull: true },
     client_id: { type: DataTypes.INTEGER, allowNull: false },
-    dealer_id: { type: DataTypes.INTEGER, allowNull: false },
-    admin_id: { type: DataTypes.INTEGER, allowNull: false },
+    parent_id: { type: DataTypes.INTEGER, allowNull: false },
     registered_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     status: {

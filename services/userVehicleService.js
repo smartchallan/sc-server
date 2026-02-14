@@ -64,8 +64,7 @@ module.exports = (UserVehicle) => {
       chasis_number,
       engine_number,
       client_id,
-      dealer_id,
-      admin_id
+      parent_id
     } = payload || {};
 
     // Normalize vehicle number to avoid case/spacing duplicates
@@ -75,8 +74,8 @@ module.exports = (UserVehicle) => {
     if (!vehicle_number && !chasis_number && !engine_number) {
       throw new Error('At least one of vehicle_number, chasis_number, or engine_number is required.');
     }
-    if (!client_id || !dealer_id || !admin_id) {
-      throw new Error('client_id, dealer_id, and admin_id are required.');
+    if (!client_id || !parent_id) {
+      throw new Error('client_id and parent_id are required.');
     }
 
     // If vehicle_number provided, check duplicate for same client_id (use normalized value)
@@ -98,8 +97,7 @@ module.exports = (UserVehicle) => {
       chasis_number,
       engine_number,
       client_id,
-      dealer_id,
-      admin_id,
+      parent_id,
       status: 'active'
     });
 
