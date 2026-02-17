@@ -109,6 +109,8 @@ const vehicleReportRouter = require('./routes/getVehicleReport');
 const userNotificationEmailRouter = require('./routes/userNotificationEmail');
 const getClientNetworkRouter = require('./routes/getClientNetwork');
 
+const getNetworkStatsRouter = require('./routes/getNetworkStats');
+
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
 app.use('/', userBillingSettingRouter);
@@ -122,6 +124,9 @@ app.use('/usernotificationemail', userNotificationEmailRouter);
 
 // New endpoint - get client network (separate module)
 app.use('/getclientnetwork', getClientNetworkRouter);
+
+// New endpoint - get network stats
+app.use('/getnetworkstats', getNetworkStatsRouter);
 
 app.use('/getvehiclereport', vehicleReportRouter);
 
