@@ -77,6 +77,7 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
             const rtoName = item && (item.rto_distric_name || item.rto_district_name || item.rto_district) || null;
             const sentToRegCourt = parseBool(item && item.sent_to_reg_court);
             const sentToVirtualCourt = parseBool(item && item.sent_to_virtual_court);
+            const fineImposed = item && (item.fine_imposed || item.fine_amount || item.penalty_amount) ? parseFloat(item.fine_imposed || item.fine_amount || item.penalty_amount) : null;
 
             // Lookup by challan_number; update if exists, otherwise create
             try {
@@ -92,6 +93,7 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   rto_distric_name: rtoName,
                   sent_to_reg_court: sentToRegCourt,
                   sent_to_virtual_court: sentToVirtualCourt,
+                  fine_imposed: fineImposed,
                   updated_at: new Date()
                 });
               } else {
@@ -106,6 +108,7 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   rto_distric_name: rtoName,
                   sent_to_reg_court: sentToRegCourt,
                   sent_to_virtual_court: sentToVirtualCourt,
+                  fine_imposed: fineImposed,
                   created_at: new Date(),
                   updated_at: new Date()
                 });
@@ -132,6 +135,8 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
             const rtoName = item && (item.rto_distric_name || item.rto_district_name || item.rto_district) || null;
             const sentToRegCourt = parseBool(item && item.sent_to_reg_court);
             const sentToVirtualCourt = parseBool(item && item.sent_to_virtual_court);
+            const fineImposed = item && (item.fine_imposed || item.fine_amount || item.penalty_amount) ? parseFloat(item.fine_imposed || item.fine_amount || item.penalty_amount) : null;
+            const finePaid = item && (item.received_amount || item.amount_paid || item.paid_amount) ? parseFloat(item.fine_paid || item.amount_paid || item.paid_amount) : null;
 
             // Lookup by challan_number; update if exists, otherwise create
             try {
@@ -147,6 +152,8 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   rto_distric_name: rtoName,
                   sent_to_reg_court: sentToRegCourt,
                   sent_to_virtual_court: sentToVirtualCourt,
+                  fine_imposed: fineImposed,
+                  fine_paid: finePaid,
                   updated_at: new Date()
                 });
               } else {
@@ -161,6 +168,8 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
                   rto_distric_name: rtoName,
                   sent_to_reg_court: sentToRegCourt,
                   sent_to_virtual_court: sentToVirtualCourt,
+                  fine_imposed: fineImposed,
+                  fine_paid: finePaid,
                   created_at: new Date(),
                   updated_at: new Date()
                 });

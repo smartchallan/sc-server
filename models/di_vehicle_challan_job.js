@@ -7,6 +7,8 @@ module.exports = (sequelize) => {
     client_id: { type: DataTypes.INTEGER, allowNull: false },
     challan_number: { type: DataTypes.STRING(128), allowNull: true },
     challan_data: { type: DataTypes.JSON, allowNull: true },
+    fine_imposed: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+    fine_paid: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
     state_code: { type: DataTypes.STRING(16), allowNull: true },
     rto_distric_name: { type: DataTypes.STRING(128), allowNull: true },
     sent_to_reg_court: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
