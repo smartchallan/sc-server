@@ -13,6 +13,7 @@ const DIFailedRecordsModel = require('./di_failed_records');
 const DIScheduledJobRecordsModel = require('./di_scheduled_job_records');
 const DIDriverDataModel = require('./di_driver_data');
 const DIUserNotificationReceiversModel = require('./di_user_notification_receivers');
+const DIUserActivityModel = require('./di_user_activity');
 
 require('dotenv').config();
 
@@ -58,6 +59,7 @@ const ScheduledJobRecords = DIScheduledJobRecordsModel(sequelize);
 const DiVehicleChallanJob = DiVehicleChallanJobModel(sequelize);
 const DiDriverData = DIDriverDataModel(sequelize);
 const DiUserNotificationReceivers = DIUserNotificationReceiversModel(sequelize);
+const UserActivity = DIUserActivityModel(sequelize);
 
 module.exports = {
   sequelize,
@@ -78,4 +80,5 @@ module.exports = {
   FailedRecords,
   ScheduledJobRecords,
   DiUserNotificationReceivers,
+  UserActivity,
 };
