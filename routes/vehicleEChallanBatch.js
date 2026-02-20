@@ -136,7 +136,7 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
             const sentToRegCourt = parseBool(item && item.sent_to_reg_court);
             const sentToVirtualCourt = parseBool(item && item.sent_to_virtual_court);
             const fineImposed = item && (item.fine_imposed || item.fine_amount || item.penalty_amount) ? parseFloat(item.fine_imposed || item.fine_amount || item.penalty_amount) : null;
-            const finePaid = item && (item.received_amount || item.amount_paid || item.paid_amount) ? parseFloat(item.fine_paid || item.amount_paid || item.paid_amount) : null;
+            const finePaid = item && (item.received_amount || item.amount_paid || item.paid_amount) ? parseFloat(item.received_amount || item.amount_paid || item.paid_amount) : null;
 
             // Lookup by challan_number; update if exists, otherwise create
             try {
