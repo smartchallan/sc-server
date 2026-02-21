@@ -1,4 +1,4 @@
-const { User, UserVehicle } = require('../models');
+const { User, UserVehicle, DiVehicleChallanJob } = require('../models');
 
 // Helper to recursively fetch all clients under a parent id
 async function fetchAllClients(parentId, allClients = []) {
@@ -49,12 +49,45 @@ exports.getNetworkStats = async (req, res) => {
       return acc;
     }, {});
 
+    // Find challans where client_id = id or client_id in allClients
+    const challans = await DiVehicleChallanJob.findAll({
+      where: {
+        client_id: allClientIds
+      },
+      attributes: ['fine_imposed', 'fine_paid', 'challan_status']
+    });
+
+    // Calculate total challan amounts and count by status
+    const challanStats = challans.reduce((acc, challan) => {
+      const imposed = parseFloat(challan.fine_imposed) || 0;
+      const paid = parseFloat(challan.fine_paid) || 0;
+      acc.total += imposed;
+      acc.paid += paid;
+      
+      // Count by status
+      const status = challan.challan_status;
+      if (status) {
+        acc.statusCount[status] = (acc.statusCount[status] || 0) + 1;
+      }
+      
+      return acc;
+    }, { total: 0, paid: 0, statusCount: {} });
+    
+    challanStats.pending = challanStats.total - challanStats.paid;
+
     const result = {
       hasNetwork,
       totalClients: allClients.length,
       clientStatus: statusCount,
       totalVehicles,
-      vehicleStatus
+      vehicleStatus,
+      totalChallans: challans.length,
+      challanStatus: challanStats.statusCount,
+      challanAmount: {
+        total: parseFloat(challanStats.total.toFixed(2)),
+        paid: parseFloat(challanStats.paid.toFixed(2)),
+        pending: parseFloat(challanStats.pending.toFixed(2))
+      }
     };
 
     console.table(result);
