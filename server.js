@@ -57,8 +57,8 @@ app.use(cors({
     'https://stage.smartchallan.com',
     'http://challan.nigraani.com',
     'https://challan.nigraani.com',
-    'https://globalafs.smartchallan.com/',
-    'http://globalafs.smartchallan.com/',
+    'https://globalafs.smartchallan.com',
+    'http://globalafs.smartchallan.com',
   ],
   credentials: true
 }));
