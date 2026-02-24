@@ -59,6 +59,8 @@ app.use(cors({
     'https://challan.nigraani.com',
     'https://globalafs.smartchallan.com',
     'http://globalafs.smartchallan.com',
+    'https://challan.eyeonfleet.com',
+    'http://challan.eyeonfleet.com'
   ],
   credentials: true
 }));
