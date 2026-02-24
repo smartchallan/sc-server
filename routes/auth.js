@@ -6,7 +6,6 @@ const { sendWelcomeEmail } = require('../services/emailService');
 // require('dotenv').config();
 
 router.post('/login', authController.login);
-const bcrypt = require('bcryptjs');
 
 router.post('/register', async (req, res) => {
     console.log('inside register user');
@@ -37,14 +36,10 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ error: 'parent_id is required for registration.' });
         }
 
-    // Hash password before registration, trim spaces
-    const cleanPassword = password ? password.trim() : '';
-    const hashedPassword = bcrypt.hashSync(cleanPassword, 10);
-
         const userData = {
             name,
             email,
-            password: hashedPassword,
+            password: password,
             phone,
             address,
             country,
