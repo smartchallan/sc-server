@@ -37,17 +37,26 @@ exports.getNetworkStats = async (req, res) => {
     const allClientIds = allClients.map(c => c.id);
     allClientIds.push(Number(id)); // include the root id
 
+    console.log('available clients for vehicle query:', allClientIds);
+
     const vehicles = await UserVehicle.findAll({
       where: {
-        parent_id: allClientIds
+        client_id: allClientIds
       },
-      attributes: ['id', 'status']
+      attributes: ['id', 'status', 'client_id']
     });
     const totalVehicles = vehicles.length;
     const vehicleStatus = vehicles.reduce((acc, v) => {
       acc[v.status] = (acc[v.status] || 0) + 1;
       return acc;
     }, {});
+
+    // const clientVehicleCount = allClients.map(client => ({
+    //   id: client.id,
+    //   vehicleCount: vehicles.filter(v => v.client_id === client.id).length
+    // }));
+    // console.log('Clients with vehicle count:');
+    // console.table(clientVehicleCount);
 
     // Find challans where client_id = id or client_id in allClients
     const challans = await DiVehicleChallanJob.findAll({

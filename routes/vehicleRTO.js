@@ -38,16 +38,40 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'clientId is required' });
     }
 
-    // Access VehicleRTOData model from app locals
+    // Access models from app locals
     const VehicleRTOData = req.app.locals.models?.VehicleRTOData;
+    const UserVehicle = req.app.locals.models?.UserVehicle;
+    
     if (!VehicleRTOData) {
       return res.status(500).json({ error: 'VehicleRTOData model not found' });
     }
-
-    let where = { client_id: clientId };
-    if (vehicleNumber) {
-      where.vehicle_number = vehicleNumber;
+    if (!UserVehicle) {
+      return res.status(500).json({ error: 'UserVehicle model not found' });
     }
+
+    // First, get active vehicle numbers for the client
+    let vehicleWhere = { client_id: clientId, status: 'active' };
+    if (vehicleNumber) {
+      vehicleWhere.vehicle_number = vehicleNumber;
+    }
+    
+    const activeVehicles = await UserVehicle.findAll({
+      where: vehicleWhere,
+      attributes: ['vehicle_number']
+    });
+    
+    const activeVehicleNumbers = activeVehicles.map(v => v.vehicle_number);
+    
+    // If no active vehicles found, return empty array
+    if (activeVehicleNumbers.length === 0) {
+      return res.json([]);
+    }
+
+    // Query RTO data only for active vehicles
+    let where = { 
+      client_id: clientId,
+      vehicle_number: activeVehicleNumbers
+    };
 
     const results = await VehicleRTOData.findAll({ where });
     res.json(results);
