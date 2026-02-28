@@ -1,20 +1,9 @@
 const axios = require('axios');
 require('dotenv').config();
-
-async function ulipLogin() {
-  const url = process.env.ULIP_LOGIN_URL;
-  const payload = {
-    username: process.env.ULIP_USERNAME,
-    password: process.env.ULIP_PASSWORD,
-  };
-  const headers = { 'Content-Type': 'application/json' };
-  const response = await axios.post(url, payload, { headers });
-  console.log('chkpoint 6' , response.data.response.id);
-  return response.data.response.id;
-}
+const { getValidToken } = require('../utils/ulipTokenManager');
 
 async function getFastagData(vehiclenumber) {
-  const token = await ulipLogin();
+  const token = await getValidToken();
   const url = process.env.ULIP_FASTAG_DATA_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,

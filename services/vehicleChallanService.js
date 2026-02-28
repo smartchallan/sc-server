@@ -1,36 +1,6 @@
 const axios = require('axios');
 require('dotenv').config();
-
-
-// In-memory token cache: { [clientID]: { token, expiresAt } }
-const tokenCache = {};
-
-async function ulipLogin(clientID) {
-  // Always login with env credentials (per clientID, but same creds)
-  const url = process.env.ULIP_LOGIN_URL;
-  const payload = {
-    username: process.env.ULIP_USERNAME,
-    password: process.env.ULIP_PASSWORD,
-  };
-  const headers = { 'Content-Type': 'application/json' };
-  const response = await axios.post(url, payload, { headers });
-  const token = response.data.response.id;
-  // Store token with 20 hour expiry
-  tokenCache[clientID] = {
-    token,
-    expiresAt: Date.now() + 20 * 60 * 60 * 1000 // 20 hours
-  };
-  return token;
-}
-
-async function getValidToken(clientID) {
-  const cached = tokenCache[clientID];
-  if (cached && cached.token && cached.expiresAt > Date.now()) {
-    return cached.token;
-  }
-  // No valid token, login
-  return await ulipLogin(clientID);
-}
+const { getValidToken, refreshToken } = require('../utils/ulipTokenManager');
 
 // Import models
 const VehicleChallanModel = require('../models/vehicle_challan');
@@ -59,7 +29,7 @@ const UserVehicle = UserVehicleModel(sequelize);
 
 async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
-  let token = await getValidToken(clientID);
+  let token = await getValidToken();
   const url = process.env.ULIP_ECHALLAN_DETAILS_URL;
   const headers = {
     'Authorization': `Bearer ${token}`,
@@ -77,7 +47,7 @@ async function getChallanDetails(vehicleNumber, clientID) {
         (String(err.response.data.message || '').toLowerCase().includes('invalid token') ||
          String(err.response.data.error || '').toLowerCase().includes('invalid token'))
     ) {
-      token = await ulipLogin(clientID); // force refresh
+      token = await refreshToken(); // force refresh
       headers['Authorization'] = `Bearer ${token}`;
       response = await axios.post(url, data, { headers });
     } else {
