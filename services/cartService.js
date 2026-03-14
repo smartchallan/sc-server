@@ -1,9 +1,8 @@
 // GET carts with line items
-exports.getCarts = async ({ client_id, dealer_id, admin_id }) => {
+exports.getCarts = async ({ client_id, parent_id }) => {
   const where = {};
   if (client_id) where.client_id = client_id;
-  if (dealer_id) where.dealer_id = dealer_id;
-  if (admin_id) where.admin_id = admin_id;
+  if (parent_id) where.parent_id = parent_id;
   const carts = await Cart.findAll({
     where,
     order: [['created_at', 'DESC']],
@@ -16,8 +15,8 @@ exports.getCarts = async ({ client_id, dealer_id, admin_id }) => {
 };
 exports.updateCart = async (payload) => {
   // Validate required fields
-  if (!payload.client_id || !payload.dealer_id || !payload.admin_id) {
-    throw new Error('client_id, dealer_id and admin_id are mandatory');
+  if (!payload.client_id || !payload.parent_id) {
+    throw new Error('client_id and parent_id are mandatory');
   }
 
   const updateFields = {};
@@ -34,8 +33,7 @@ exports.updateCart = async (payload) => {
     // Otherwise, use composite keys
     whereClause = {
       client_id: payload.client_id,
-      dealer_id: payload.dealer_id,
-      admin_id: payload.admin_id
+      parent_id: payload.parent_id
     };
   }
   const [affectedRows] = await Cart.update(updateFields, {
@@ -49,8 +47,8 @@ const { CartLineItem } = require('../models');
 
 exports.createCart = async (payload) => {
   // Validate mandatory fields
-  if (!payload.client_id || !payload.dealer_id || !payload.admin_id) {
-    throw new Error('client_id, dealer_id and admin_id are mandatory');
+  if (!payload.client_id || !payload.parent_id) {
+    throw new Error('client_id and parent_id are mandatory');
   }
 
   // Log incoming payload for debugging
@@ -59,8 +57,7 @@ exports.createCart = async (payload) => {
   // Create only one cart record per request
   const created = await Cart.create({
     client_id: payload.client_id,
-    dealer_id: payload.dealer_id,
-    admin_id: payload.admin_id,
+    parent_id: payload.parent_id,
     request_type: payload.request_type || null,
     item_count: Array.isArray(payload.line_items) ? payload.line_items.length : 0,
     transaction_id: payload.transaction_id || null,

@@ -1,8 +1,8 @@
 // GET /cart
 exports.get = async (req, res) => {
   try {
-    const { client_id, dealer_id, admin_id } = req.query;
-    const carts = await cartService.getCarts({ client_id, dealer_id, admin_id });
+    const { client_id, parent_id } = req.query;
+    const carts = await cartService.getCarts({ client_id, parent_id });
     res.json({ success: true, data: carts });
   } catch (err) {
     console.error('Error fetching carts:', err);

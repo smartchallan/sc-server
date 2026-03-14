@@ -60,6 +60,7 @@ exports.getSummary = async (client_id, options = {}) => {
       const d = rto.rto_data.VehicleDetails ? rto.rto_data.VehicleDetails : rto.rto_data;
       rtoFields = {
         rc_regn_dt: d.rc_regn_dt || null,
+        rc_status: d.rc_status || null,
         body_type: d.rc_body_type_desc || null,
         rc_fit_upto: { value: d.rc_fit_upto || null, ...parseDateStatus(d.rc_fit_upto) },
         rc_tax_upto: { value: d.rc_tax_upto || null, ...parseDateStatus(d.rc_tax_upto) },

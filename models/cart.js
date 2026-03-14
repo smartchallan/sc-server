@@ -4,8 +4,7 @@ module.exports = (sequelize) => {
   const Cart = sequelize.define('Cart', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     client_id: { type: DataTypes.INTEGER, allowNull: false },
-    dealer_id: { type: DataTypes.INTEGER, allowNull: false },
-    admin_id: { type: DataTypes.INTEGER, allowNull: false },
+    parent_id: { type: DataTypes.INTEGER, allowNull: false },
     request_type: { type: DataTypes.STRING(64), allowNull: true },
     item_count: { type: DataTypes.INTEGER, allowNull: true },
     transaction_id: { type: DataTypes.STRING(128), allowNull: true },
