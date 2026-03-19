@@ -14,17 +14,13 @@ router.post('/', async (req, res) => {
     if (!clientID) {
       return res.status(400).json({ error: 'client id is required' });
     }
-    console.log('chkpoint 1');
+    console.log('[vehicleRTO] POST request received', { vehicleNumber, clientID });
     const rtoDetails = await vehicleRTOService.getRTODetails(vehicleNumber, clientID);
-
-    // const jsonResult = convert.xml2json(challanDetails, {
-    //     compact: true,
-    //     spaces: 2
-    // });
-
+    console.log('[vehicleRTO] Success for', vehicleNumber);
     res.json(rtoDetails);
   } catch (error) {
-    console.log('chkpoint 2');
+    console.error('[vehicleRTO] ERROR:', error.message);
+    console.error('[vehicleRTO] Stack:', error.stack);
     res.status(500).json({ error: error.message });
   }
 });

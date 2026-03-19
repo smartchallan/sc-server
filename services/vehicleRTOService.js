@@ -29,20 +29,46 @@ const VehicleRTOData = VehicleRTODataModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
 
 async function getRTODetails(vehicleNumber, clientID) {
+  console.log(`[getRTODetails] START vehicleNumber=${vehicleNumber} clientID=${clientID}`);
+
   const token = await getValidToken();
   const url = process.env.ULIP_VAHAN_DETAILS_URL;
+  console.log(`[getRTODetails] Calling ULIP URL: ${url}`);
+
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
   const data = { 'vehiclenumber': vehicleNumber };
+
   const response = await axios.post(url, data, { headers });
+  console.log(`[getRTODetails] ULIP HTTP status: ${response.status}`);
+  console.log(`[getRTODetails] ULIP raw response:`, JSON.stringify(response.data));
+
+  // Guard: validate ULIP response structure before accessing nested path
+  if (
+    !response.data ||
+    !Array.isArray(response.data.response) ||
+    response.data.response.length === 0 ||
+    !response.data.response[0] ||
+    !response.data.response[0].response
+  ) {
+    throw new Error(
+      `ULIP returned unexpected structure for ${vehicleNumber}. ` +
+      `Full response: ${JSON.stringify(response.data)}`
+    );
+  }
+
   const xml = response.data.response[0].response;
+  console.log(`[getRTODetails] XML extracted (first 200 chars): ${String(xml).substring(0, 200)}`);
+
   // Convert XML to JSON
   let jsonResult;
   await xml2js.parseStringPromise(xml, { explicitArray: false })
     .then(result => { jsonResult = result; })
     .catch(err => { throw new Error('Failed to parse XML response: ' + err.message); });
+
+  console.log(`[getRTODetails] XML parsed successfully`);
 
   // Save to di_vehicle_rto_data
   const existing = await VehicleRTOData.findOne({
@@ -96,8 +122,10 @@ async function getRTODetails(vehicleNumber, clientID) {
   };
 
   if (existing) {
+    console.log(`[getRTODetails] Updating existing DB record for ${vehicleNumber}`);
     await existing.update(savePayload);
   } else {
+    console.log(`[getRTODetails] Creating new DB record for ${vehicleNumber}`);
     await VehicleRTOData.create({
       vehicle_number: vehicleNumber,
       client_id: clientID,
@@ -105,17 +133,14 @@ async function getRTODetails(vehicleNumber, clientID) {
       created_at: new Date()
     });
   }
+  console.log(`[getRTODetails] DB save complete for ${vehicleNumber}`);
 
   // Update di_user_vehicle table to mark rto_data as true when data is fetched successfully
   await UserVehicle.update(
     { rto_data: true, updated_at: new Date() },
-    { 
-      where: { 
-        vehicle_number: vehicleNumber,
-        client_id: clientID 
-      } 
-    }
+    { where: { vehicle_number: vehicleNumber, client_id: clientID } }
   );
+  console.log(`[getRTODetails] UserVehicle rto_data flag updated for ${vehicleNumber}`);
 
   return jsonResult;
 }
