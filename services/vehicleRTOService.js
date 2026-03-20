@@ -28,20 +28,33 @@ const sequelize = new Sequelize(
 const VehicleRTOData = VehicleRTODataModel(sequelize);
 const UserVehicle = UserVehicleModel(sequelize);
 
+async function callUlipWithRetry(url, data) {
+  const makeRequest = async (token) => axios.post(url, data, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+  });
+
+  let token = await getValidToken();
+  try {
+    return await makeRequest(token);
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 401) {
+      // Cached token was rejected — force a fresh login and retry once
+      console.table({ action: 'ULIP 401 — forcing token refresh', url });
+      token = await refreshToken();
+      return await makeRequest(token); // let this throw if still failing
+    }
+    throw err;
+  }
+}
+
 async function getRTODetails(vehicleNumber, clientID) {
   console.log(`[getRTODetails] START vehicleNumber=${vehicleNumber} clientID=${clientID}`);
 
-  const token = await getValidToken();
   const url = process.env.ULIP_VAHAN_DETAILS_URL;
   console.log(`[getRTODetails] Calling ULIP URL: ${url}`);
 
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-  const data = { 'vehiclenumber': vehicleNumber };
-
-  const response = await axios.post(url, data, { headers });
+  const response = await callUlipWithRetry(url, { vehiclenumber: vehicleNumber });
   console.log(`[getRTODetails] ULIP HTTP status: ${response.status}`);
   console.log(`[getRTODetails] ULIP raw response:`, JSON.stringify(response.data));
 

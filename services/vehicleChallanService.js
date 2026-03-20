@@ -42,12 +42,12 @@ async function getChallanDetails(vehicleNumber, clientID) {
   try {
     response = await axios.post(url, data, { headers });
   } catch (err) {
-    // If error is invalid token, refresh token and retry once
-    if (err.response && err.response.data &&
-        (String(err.response.data.message || '').toLowerCase().includes('invalid token') ||
-         String(err.response.data.error || '').toLowerCase().includes('invalid token'))
-    ) {
-      token = await refreshToken(); // force refresh
+    const status = err.response?.status;
+    const bodyText = JSON.stringify(err.response?.data || '').toLowerCase();
+    // Retry on HTTP 401 OR body containing "invalid token"
+    if (status === 401 || bodyText.includes('invalid token')) {
+      console.table({ action: 'ULIP 401/invalid-token — forcing token refresh', url });
+      token = await refreshToken();
       headers['Authorization'] = `Bearer ${token}`;
       response = await axios.post(url, data, { headers });
     } else {
