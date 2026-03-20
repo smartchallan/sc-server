@@ -50,7 +50,38 @@ async function sendMail({ to, subject, html }) {
   });
 }
 
-module.exports = { sendWelcomeEmail, sendMail };
+async function sendClientRegistrationNotification({ name, email, phone, company_name, business_category, city, state }) {
+  const NOTIFY_RECIPIENTS = process.env.STAKEHOLDER_EMAILS || 'operations@smartchallan.com,smartchallan@gmail.com';
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;background:#f9f9f9;border-radius:8px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <img src="${process.env.COMPANY_LOGO_URL}" alt="Company Logo" style="max-width:180px;max-height:80px;"/>
+      </div>
+      <h2 style="color:#2d3748;">New Client Registered</h2>
+      <p style="font-size:15px;">A new client has been registered on <b>${process.env.COMPANY_NAME || 'SmartChallan'}</b>. Details are below:</p>
+      <div style="margin:20px 0;padding:16px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
+        <table style="width:100%;font-size:15px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#4a5568;width:40%;">Name</td><td style="padding:6px 0;"><b>${name || '-'}</b></td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">Email</td><td style="padding:6px 0;">${email || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">Phone</td><td style="padding:6px 0;">${phone || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">Company</td><td style="padding:6px 0;">${company_name || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">Business Category</td><td style="padding:6px 0;">${business_category || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">City</td><td style="padding:6px 0;">${city || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#4a5568;">State</td><td style="padding:6px 0;">${state || '-'}</td></tr>
+        </table>
+      </div>
+      <p style="font-size:13px;color:#718096;">This is an automated notification from ${process.env.COMPANY_NAME || 'SmartChallan'}.</p>
+    </div>
+  `;
+  return transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: NOTIFY_RECIPIENTS,
+    subject: `New Client Registered: ${name}`,
+    html
+  });
+}
+
+module.exports = { sendWelcomeEmail, sendMail, sendClientRegistrationNotification };
 /**
  * Send order notification email to admin and client
  * @param {Object} params - { clientEmail, adminEmail, clientName, orderDetails }

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { registerUser } = require('../services/authService');
-const { sendWelcomeEmail } = require('../services/emailService');
+const { sendWelcomeEmail, sendClientRegistrationNotification } = require('../services/emailService');
 // require('dotenv').config();
 
 router.post('/login', authController.login);
@@ -53,6 +53,12 @@ router.post('/register', async (req, res) => {
         };
         console.table('register user data is' + JSON.stringify(userData));
         const regResult = await registerUser(userData);
+
+        // Notify operations team of new client registration
+        sendClientRegistrationNotification({
+            name, email, phone, company_name, business_category, city, state
+        }).catch(err => console.error('Failed to send registration notification:', err));
+
         // regResult: { user: userObj, userMeta }
         const { sendEmail } = req.body;
         if (sendEmail) {
