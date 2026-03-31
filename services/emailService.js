@@ -13,7 +13,10 @@ const transporter = nodemailer.createTransport({
 });
 
 
-async function sendWelcomeEmail(to, name, username, password) {
+async function sendWelcomeEmail(to, name, username, password, dealerName, dealerId) {
+  const dealerRow = dealerName
+    ? `<tr><td style="padding:4px 0;color:#4a5568;">Added by (Dealer):</td><td style="padding:4px 0;"><b>${dealerName}</b>${dealerId ? ` <span style="color:#718096;font-size:13px;">(ID: ${dealerId})</span>` : ''}</td></tr>`
+    : '';
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;background:#f9f9f9;border-radius:8px;">
       <div style="text-align:center;margin-bottom:24px;">
@@ -27,6 +30,7 @@ async function sendWelcomeEmail(to, name, username, password) {
         <table style="width:100%;font-size:16px;">
           <tr><td style="padding:4px 0;color:#4a5568;">Username:</td><td style="padding:4px 0;"><b>${username}</b></td></tr>
           <tr><td style="padding:4px 0;color:#4a5568;">Password:</td><td style="padding:4px 0;"><b>${password}</b></td></tr>
+          ${dealerRow}
         </table>
         <p style="font-size:13px;color:#718096;margin-top:8px;">Please keep your credentials safe and do not share them with anyone.</p>
       </div>
@@ -50,8 +54,12 @@ async function sendMail({ to, subject, html }) {
   });
 }
 
-async function sendClientRegistrationNotification({ name, email, phone, company_name, business_category, city, state }) {
+async function sendClientRegistrationNotification({ name, email, phone, company_name, business_category, city, state, dealer_name, dealer_id }) {
   const NOTIFY_RECIPIENTS = process.env.STAKEHOLDER_EMAILS || 'operations@smartchallan.com,smartchallan@gmail.com';
+  const dealerRows = dealer_name
+    ? `<tr><td style="padding:6px 0;color:#4a5568;">Added by (Dealer)</td><td style="padding:6px 0;"><b>${dealer_name}</b></td></tr>
+       <tr><td style="padding:6px 0;color:#4a5568;">Dealer ID</td><td style="padding:6px 0;">${dealer_id || '-'}</td></tr>`
+    : '';
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;background:#f9f9f9;border-radius:8px;">
       <div style="text-align:center;margin-bottom:24px;">
@@ -68,6 +76,7 @@ async function sendClientRegistrationNotification({ name, email, phone, company_
           <tr><td style="padding:6px 0;color:#4a5568;">Business Category</td><td style="padding:6px 0;">${business_category || '-'}</td></tr>
           <tr><td style="padding:6px 0;color:#4a5568;">City</td><td style="padding:6px 0;">${city || '-'}</td></tr>
           <tr><td style="padding:6px 0;color:#4a5568;">State</td><td style="padding:6px 0;">${state || '-'}</td></tr>
+          ${dealerRows}
         </table>
       </div>
       <p style="font-size:13px;color:#718096;">This is an automated notification from ${process.env.COMPANY_NAME || 'SmartChallan'}.</p>

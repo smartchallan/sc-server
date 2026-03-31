@@ -3,7 +3,7 @@ const router = express.Router();
 const updateUserPassword = require('../services/userProfileService');
 
 module.exports = (models) => {
-  const { User } = models;
+  const { User, UserVehicle } = models;
 
   // PUT /userprofile/update/:userId
   router.put('/updatepassword/:userId', async (req, res) => {
@@ -34,6 +34,7 @@ module.exports = (models) => {
   });
 
   // PUT /userprofile/status
+  // Also cascades status change to all vehicles belonging to this user.
   router.put('/status', async (req, res) => {
     const { user_id, status } = req.body;
     if (!user_id || !status || !['active', 'inactive'].includes(status)) {
@@ -44,11 +45,18 @@ module.exports = (models) => {
         { status, updated_at: new Date() },
         { where: { id: user_id } }
       );
-      if (updated) {
-        return res.json({ message: 'User status updated successfully.' });
-      } else {
+      if (!updated) {
         return res.status(404).json({ error: 'User not found.' });
       }
+
+      // Cascade status to all vehicles of this user (client_id = user_id)
+      const vehicleStatus = status === 'active' ? 'active' : 'inactive';
+      await UserVehicle.update(
+        { status: vehicleStatus, updated_at: new Date() },
+        { where: { client_id: user_id } }
+      );
+
+      return res.json({ message: `User and their vehicles marked as ${status} successfully.` });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

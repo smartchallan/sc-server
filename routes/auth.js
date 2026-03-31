@@ -20,10 +20,12 @@ router.post('/register', async (req, res) => {
             city,
             state,
             pin,
-                parent_id,
+            parent_id,
             gtin,
             company_name,
-            business_category
+            business_category,
+            dealer_name,
+            dealer_id,
         } = req.body;
 
         // Validate mandatory fields
@@ -56,7 +58,8 @@ router.post('/register', async (req, res) => {
 
         // Notify operations team of new client registration
         sendClientRegistrationNotification({
-            name, email, phone, company_name, business_category, city, state
+            name, email, phone, company_name, business_category, city, state,
+            dealer_name, dealer_id
         }).catch(err => console.error('Failed to send registration notification:', err));
 
         // regResult: { user: userObj, userMeta }
@@ -70,7 +73,7 @@ router.post('/register', async (req, res) => {
                     password: req.body.password
                 });
                 // Use email as username, and the original password from req.body
-                await sendWelcomeEmail(regResult.user.email, regResult.user.name, regResult.user.email, req.body.password);
+                await sendWelcomeEmail(regResult.user.email, regResult.user.name, regResult.user.email, req.body.password, dealer_name, dealer_id);
             } catch (emailErr) {
                 console.error('Failed to send welcome email:', emailErr);
             }

@@ -20,7 +20,8 @@ const {
   VehicleRTOData,
   VehicleChallan,
   Cart,
-  UserBilling
+  UserBilling,
+  ClientNotification,
 } = require('./models');
 const { DiDriverData } = require('./models');
 
@@ -35,9 +36,10 @@ if (!User.associations.billing) {
   UserBilling.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 }
 
-const models = { 
-  User, UserMeta, UserVehicle, UserVehicles, UserSettings, 
-  UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling 
+const models = {
+  User, UserMeta, UserVehicle, UserVehicles, UserSettings,
+  UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling,
+  ClientNotification,
 };
 
 models.DiDriverData = DiDriverData;
@@ -114,6 +116,8 @@ const getClientNetworkRouter = require('./routes/getClientNetwork');
 const userActivityRouter = require('./routes/userActivity');
 
 const getNetworkStatsRouter = require('./routes/getNetworkStats');
+const notificationsRouter = require('./routes/notifications')(models);
+const masterSearchRouter = require('./routes/masterSearch')(models);
 
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
@@ -130,9 +134,13 @@ app.use('/saveuseractivity', userActivityRouter);
 
 // New endpoint - get client network (separate module)
 app.use('/getclientnetwork', getClientNetworkRouter);
+app.use('/notifications', notificationsRouter);
 
 // New endpoint - get network stats
 app.use('/getnetworkstats', getNetworkStatsRouter);
+
+// Master search across dealer network
+app.use('/master-search', masterSearchRouter);
 
 app.use('/getvehiclereport', vehicleReportRouter);
 
