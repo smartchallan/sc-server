@@ -1,6 +1,29 @@
 const axios = require('axios');
 require('dotenv').config();
+const moment = require('moment');
 const { getValidToken, refreshToken } = require('../utils/ulipTokenManager');
+
+/** Normalize a date string to DD-MMM-YYYY, returns null if unparseable */
+function normalizeDate(val) {
+  if (!val) return null;
+  const formats = ['DD-MM-YYYY HH:mm:ss', 'DD-MM-YYYY', 'DD-MMM-YYYY', 'YYYY-MM-DD'];
+  let m = moment(val, formats, true);
+  if (!m.isValid()) m = moment(val); // ISO / other fallback
+  return m.isValid() ? m.format('DD-MMM-YYYY') : null;
+}
+
+/** Normalize date fields in an array of challan objects in-place */
+function normalizeChallanDates(arr) {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map(item => {
+    if (!item || typeof item !== 'object') return item;
+    const copy = { ...item };
+    if (copy.challan_date_time) copy.challan_date_time = normalizeDate(copy.challan_date_time) || copy.challan_date_time;
+    if (copy.hearing_date) copy.hearing_date = normalizeDate(copy.hearing_date) || copy.hearing_date;
+    if (copy.payment_date) copy.payment_date = normalizeDate(copy.payment_date) || copy.payment_date;
+    return copy;
+  });
+}
 
 // Import models
 const VehicleChallanModel = require('../models/vehicle_challan');
@@ -113,7 +136,12 @@ async function getChallanDetails(vehicleNumber, clientID) {
   );
   console.log('vehicle challan data pending', pendingData);
   console.log('vehicle challan data disposed', disposedData);
-  return response.data.response[0].response.data;
+  const rawData = response.data.response[0].response.data;
+  return {
+    ...rawData,
+    Pending_data: normalizeChallanDates(rawData.Pending_data),
+    Disposed_data: normalizeChallanDates(rawData.Disposed_data),
+  };
 }
 
 module.exports = {

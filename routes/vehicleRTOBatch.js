@@ -15,16 +15,14 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
   const service = vehicleRTOService;
   // Custom concurrency worker: 4 API calls at a time, 1 second between batches
   async function runWithConcurrencyAndDelay(items, batchSize, iteratorFn, delayMs) {
-    const results = new Array(items.length);
+    const results = [];
     let i = 0;
     while (i < items.length) {
-      const batch = items.slice(i, i + batchSize).map((item, idx) => {
-        return iteratorFn(item).then(
-          (res) => { results[i + idx] = res; },
-          (err) => { results[i + idx] = { vehicleNumber: item, success: false, error: err.message }; }
-        );
-      });
-      await Promise.all(batch);
+      const batch = items.slice(i, i + batchSize).map((item) =>
+        iteratorFn(item)
+      );
+      const batchResults = await Promise.all(batch);
+      results.push(...batchResults);
       i += batchSize;
       if (i < items.length) {
         await new Promise(resolve => setTimeout(resolve, delayMs));
@@ -32,8 +30,6 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
     }
     return results;
   }
-  // Pre-fetch token once for this client (will cache for batch)
-  await service.getRTODetails(vehicleNumbers[0], clientID); // This will cache token for clientID
   const results = await runWithConcurrencyAndDelay(
     vehicleNumbers,
     4, // batch size
@@ -48,7 +44,6 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
     1000 // 1 second delay between batches
   );
   const successCount = results.filter(r => r.success).length;
-  const failedCount = results.length - successCount;
   const failedRecords = results.filter(r => !r.success).map(r => ({ vehicleNumber: r.vehicleNumber, error: r.error }));
   return {
     success: true,

@@ -101,5 +101,20 @@ module.exports = (models) => {
     }
   });
 
+  // DELETE /notifications/:id?sender_id=X — only the sender can delete their notification
+  router.delete('/:id', async (req, res) => {
+    const { sender_id } = req.query;
+    if (!sender_id) return res.status(400).json({ error: 'sender_id is required.' });
+    try {
+      const notif = await ClientNotification.findOne({ where: { id: req.params.id } });
+      if (!notif) return res.status(404).json({ error: 'Notification not found.' });
+      if (String(notif.sender_id) !== String(sender_id)) return res.status(403).json({ error: 'Not authorized to delete this notification.' });
+      await notif.destroy();
+      return res.json({ message: 'Notification deleted.' });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };

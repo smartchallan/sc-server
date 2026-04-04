@@ -1,26 +1,30 @@
 const { UserVehicle, VehicleChallan, VehicleRTOData } = require('../models');
+const moment = require('moment');
+
+/** Normalize any recognized date string to DD-MMM-YYYY, passthrough if unrecognized */
+function normDate(val) {
+  if (!val || typeof val !== 'string') return val;
+  const formats = ['DD-MMM-YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD', 'DD-MM-YYYY HH:mm:ss'];
+  for (const fmt of formats) {
+    const m = moment(val, fmt, true);
+    if (m.isValid()) return m.format('DD-MMM-YYYY');
+  }
+  return val;
+}
 
 function parseDateStatus(dateStr) {
   if (!dateStr) return {};
   // Get today's date at midnight for proper comparison
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
-  let date;
-  // Support DD-MM-YYYY format
-  if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
-    const [day, month, year] = dateStr.split('-');
-    date = new Date(year, month - 1, day); // month is 0-indexed
-  } else {
-    date = new Date(dateStr);
-  }
-  if (isNaN(date)) return {};
-  
-  // Normalize date to midnight for comparison
-  const dateAtMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  
+
+  // Use moment to parse DD-MMM-YYYY, DD-MM-YYYY, and YYYY-MM-DD
+  const m = moment(dateStr, ['DD-MMM-YYYY', 'DD-MM-YYYY', 'YYYY-MM-DD'], true);
+  if (!m.isValid()) return {};
+
+  const dateAtMidnight = new Date(m.year(), m.month(), m.date());
   const diffDays = Math.ceil((dateAtMidnight - today) / (1000 * 60 * 60 * 24));
-  
+
   // If date has passed (less than today), mark as expired
   if (dateAtMidnight < today) return { status: 'expired' };
   if (diffDays <= 15 && diffDays >= 0) return { status: 'upcoming_renewal' };
@@ -59,15 +63,15 @@ exports.getSummary = async (client_id, options = {}) => {
       // Use VehicleDetails if present
       const d = rto.rto_data.VehicleDetails ? rto.rto_data.VehicleDetails : rto.rto_data;
       rtoFields = {
-        rc_regn_dt: d.rc_regn_dt || null,
+        rc_regn_dt: normDate(d.rc_regn_dt) || null,
         rc_status: d.rc_status || null,
         body_type: d.rc_body_type_desc || null,
-        rc_fit_upto: { value: d.rc_fit_upto || null, ...parseDateStatus(d.rc_fit_upto) },
-        rc_tax_upto: { value: d.rc_tax_upto || null, ...parseDateStatus(d.rc_tax_upto) },
-        rc_pucc_upto: { value: d.rc_pucc_upto || null, ...parseDateStatus(d.rc_pucc_upto) },
-        rc_insurance_upto: { value: d.rc_insurance_upto || null, ...parseDateStatus(d.rc_insurance_upto) },
-        rc_permit_valid_upto: { value: d.rc_permit_valid_upto || null, ...parseDateStatus(d.rc_permit_valid_upto) },
-        rc_np_upto: { value: d.rc_np_upto || null, ...parseDateStatus(d.rc_np_upto) }
+        rc_fit_upto: { value: normDate(d.rc_fit_upto) || null, ...parseDateStatus(normDate(d.rc_fit_upto) || d.rc_fit_upto) },
+        rc_tax_upto: { value: normDate(d.rc_tax_upto) || null, ...parseDateStatus(normDate(d.rc_tax_upto) || d.rc_tax_upto) },
+        rc_pucc_upto: { value: normDate(d.rc_pucc_upto) || null, ...parseDateStatus(normDate(d.rc_pucc_upto) || d.rc_pucc_upto) },
+        rc_insurance_upto: { value: normDate(d.rc_insurance_upto) || null, ...parseDateStatus(normDate(d.rc_insurance_upto) || d.rc_insurance_upto) },
+        rc_permit_valid_upto: { value: normDate(d.rc_permit_valid_upto) || null, ...parseDateStatus(normDate(d.rc_permit_valid_upto) || d.rc_permit_valid_upto) },
+        rc_np_upto: { value: normDate(d.rc_np_upto) || null, ...parseDateStatus(normDate(d.rc_np_upto) || d.rc_np_upto) }
       };
     }
     result.push({
