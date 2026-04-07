@@ -15,7 +15,7 @@ async function getDriverData(driverId, dob) {
   try {
     const response = await axios.post(url, data, { headers });
     console.log('Driver Data Response Status:', response.status);
-    console.log('Driver Data Response:', response.data);
+    console.log('Driver Data Response (full):', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
