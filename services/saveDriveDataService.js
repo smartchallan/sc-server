@@ -5,6 +5,7 @@ module.exports = (models) => {
       const client_id = payload.client_id || payload.clientId || null;
       const dob = payload.dob || null;
       const details = payload.details || null;
+      const status = payload.status || 'pending';
 
       if (!client_id) {
         const err = new Error('client_id is required');
@@ -22,12 +23,12 @@ module.exports = (models) => {
       let record = await models.DiDriverData.findOne({ where: { license_no } });
 
       if (record) {
-        await record.update({ client_id, dob, details });
+        await record.update({ client_id, dob, details, status });
         return record;
       }
 
       // Insert new
-      record = await models.DiDriverData.create({ license_no, client_id, dob, details });
+      record = await models.DiDriverData.create({ license_no, client_id, dob, details, status });
       return record;
     }
   };
