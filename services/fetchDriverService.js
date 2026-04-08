@@ -7,7 +7,11 @@ module.exports = (models) => {
         throw err;
       }
 
-      const records = await models.DiDriverData.findAll({ where: { client_id } });
+      const { Op } = require('sequelize');
+      const records = await models.DiDriverData.findAll({
+        where: { client_id, status: { [Op.ne]: 'deleted' } },
+        order: [['created_at', 'DESC']],
+      });
       return records;
     }
   };

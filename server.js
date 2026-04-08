@@ -84,6 +84,8 @@ require('./jobs/dailyChallanNotifyScheduler');
 require('./jobs/vehicleRTOBatchScheduler');
 // Load expired insurance notification scheduler
 require('./jobs/expiredInsuranceNotificationScheduler');
+// Trial account expiry reminders and deactivation
+require('./jobs/trialAccountScheduler');
 
 // Register update vehicle status route
 const updateVehicleRouter = require('./routes/updateVehicle')(models);
@@ -97,7 +99,8 @@ const driverDataRouter = require('./routes/driverData');
 const fastagDataRouter = require('./routes/fastagData');
 const saveDriveDataRouter = require('./routes/saveDriveData')(models);
 const fetchDriverRouter = require('./routes/fetchDriver')(models);
-const userVehicleRouter = require('./routes/userVehicle')(UserVehicle);
+const deleteDriverRouter = require('./routes/deleteDriver')(models);
+const userVehicleRouter = require('./routes/userVehicle')(UserVehicle, models);
 const userVehicleRtoDataRouter = require('./routes/userVehicleRtoData')(UserVehicleRtoData);
 const adminDataRouter = require('./routes/adminData')(models);
 const clientDataRouter = require('./routes/clientData')(models);
@@ -153,6 +156,7 @@ app.use('/getdriverdata', driverDataRouter);
 app.use('/getvehiclefastagdata', fastagDataRouter);
 app.use('/savedrivedata', saveDriveDataRouter);
 app.use('/fetchdriver', fetchDriverRouter);
+app.use('/deletedriver', deleteDriverRouter);
 app.use('/uservehicle', userVehicleRouter);
 app.use('/userrtodata', userVehicleRtoDataRouter);
 app.use('/admindata', adminDataRouter);

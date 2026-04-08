@@ -90,7 +90,40 @@ async function sendClientRegistrationNotification({ name, email, phone, company_
   });
 }
 
-module.exports = { sendWelcomeEmail, sendMail, sendClientRegistrationNotification };
+async function sendTrialExpiryReminder({ clientName, clientEmail, dealerEmail, expiresAt, daysLeft }) {
+  const expiry = new Date(expiresAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  const urgency = daysLeft <= 1 ? '#dc2626' : daysLeft <= 2 ? '#ea580c' : '#d97706';
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;background:#f9f9f9;border-radius:8px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <img src="${process.env.COMPANY_LOGO_URL}" alt="${process.env.COMPANY_NAME}" style="max-width:180px;max-height:80px;"/>
+      </div>
+      <div style="background:${urgency};color:#fff;padding:12px 20px;border-radius:8px;margin-bottom:20px;text-align:center;">
+        <strong style="font-size:16px;">⚠️ Trial Account Expiring in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>
+      </div>
+      <p>Hi <b>${clientName}</b>,</p>
+      <p>Your <b>${process.env.COMPANY_NAME || 'SmartChallan'}</b> trial account is expiring on <b>${expiry}</b>.</p>
+      <p>After expiry, your account will be <b>deactivated</b> and you will no longer be able to access the platform.</p>
+      <div style="margin:24px 0;padding:16px;background:#fff;border-radius:6px;border:1px solid #e2e8f0;">
+        <p style="margin:0;font-size:15px;">To continue using ${process.env.COMPANY_NAME || 'SmartChallan'}, please contact your dealer or write to us at
+          <a href="mailto:${process.env.EMAIL_USER}">${process.env.EMAIL_USER}</a>.
+        </p>
+      </div>
+      <p style="margin-top:32px;">Best regards,<br/>${process.env.COMPANY_NAME || 'SmartChallan Team'}</p>
+    </div>
+  `;
+  const subject = `⚠️ Trial Expiring in ${daysLeft} day${daysLeft !== 1 ? 's' : ''} — ${clientName}`;
+  const recipients = [clientEmail, 'smartchallan@gmail.com'];
+  if (dealerEmail && dealerEmail !== clientEmail) recipients.push(dealerEmail);
+  return transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: recipients.join(','),
+    subject,
+    html,
+  });
+}
+
+module.exports = { sendWelcomeEmail, sendMail, sendClientRegistrationNotification, sendTrialExpiryReminder };
 /**
  * Send order notification email to admin and client
  * @param {Object} params - { clientEmail, adminEmail, clientName, orderDetails }

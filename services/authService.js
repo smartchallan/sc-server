@@ -66,12 +66,21 @@ async function registerUser(data) {
     const hashedPassword = bcrypt.hashSync(cleanPassword, 10);
     console.log('Registering user with password:', `"${cleanPassword}"`);
     console.log('Generated hash:', `"${hashedPassword}"`);
+    const accountType = data.account_type || 'trial';
+    let trialExpiresAt = null;
+    if (accountType === 'trial') {
+        const days = parseInt(process.env.TRIAL_VALIDITY_DAYS, 10) || 7;
+        trialExpiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    }
+
     const userData = {
         name: data.name,
         email: data.email,
         password: hashedPassword,
         role: data.userType,
-        parent_id: typeof data.parent_id !== 'undefined' ? data.parent_id : null
+        parent_id: typeof data.parent_id !== 'undefined' ? data.parent_id : null,
+        account_type: accountType,
+        trial_expires_at: trialExpiresAt,
     };
 
     // Create user record

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const userVehicleService = require('../services/userVehicleService');
 
-module.exports = (UserVehicle) => {
+module.exports = (UserVehicle, models) => {
   const serviceFactory = userVehicleService;
 
   // Register a new vehicle
@@ -14,6 +14,23 @@ module.exports = (UserVehicle) => {
     console.table([{ vehicle_number, chasis_number, engine_number, client_id }]);
 
     try {
+      // Trial account vehicle limit check
+      if (models && models.User && client_id) {
+        const user = await models.User.findOne({ where: { id: client_id } });
+        if (user && user.account_type === 'trial') {
+          const LIMIT = parseInt(process.env.TRIAL_VEHICLE_LIMIT, 10) || 10;
+          const { Op } = require('sequelize');
+          const count = await UserVehicle.count({
+            where: { client_id, status: { [Op.ne]: 'deleted' } }
+          });
+          if (count >= LIMIT) {
+            return res.status(403).json({
+              error: `Trial accounts can only add up to ${LIMIT} vehicles. Please upgrade to add more.`
+            });
+          }
+        }
+      }
+
       const service = serviceFactory(UserVehicle);
       const result = await service.registerVehicle(req.body);
 

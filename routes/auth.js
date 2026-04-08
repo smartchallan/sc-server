@@ -26,6 +26,7 @@ router.post('/register', async (req, res) => {
             business_category,
             dealer_name,
             dealer_id,
+            account_type,
         } = req.body;
 
         // Validate mandatory fields
@@ -51,7 +52,8 @@ router.post('/register', async (req, res) => {
             parent_id,
             gtin,
             company_name,
-            business_category
+            business_category,
+            account_type: account_type || 'trial',
         };
         console.table('register user data is' + JSON.stringify(userData));
         const regResult = await registerUser(userData);

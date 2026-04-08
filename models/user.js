@@ -9,6 +9,8 @@ module.exports = (sequelize) => {
     password: { type: DataTypes.STRING, allowNull: false },
     // role: { type: DataTypes.ENUM('superuser', 'admin', 'dealer', 'client', 'team'), allowNull: false },
     status: { type: DataTypes.STRING, defaultValue: 'active' },
+    account_type: { type: DataTypes.STRING, allowNull: false, defaultValue: 'trial' }, // trial | billable | demo
+    trial_expires_at: { type: DataTypes.DATE, allowNull: true },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     last_login_at: { type: DataTypes.DATE, allowNull: true },
