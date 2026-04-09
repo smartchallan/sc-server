@@ -2,6 +2,30 @@ const express = require('express');
 const router = express.Router();
 
 const userVehicleService = require('../services/userVehicleService');
+const { getRTODetails } = require('../services/vehicleRTOService');
+const { getChallanDetails } = require('../services/vehicleChallanService');
+
+/**
+ * Fire-and-forget: fetch RTO + challan data for a newly registered vehicle.
+ * Runs after the HTTP response has already been sent — errors are only logged.
+ */
+function triggerInitialDataFetch(vehicle_number, client_id) {
+  setImmediate(async () => {
+    console.table({ action: 'initial_data_fetch_start', vehicle_number, client_id });
+    const results = await Promise.allSettled([
+      getRTODetails(vehicle_number, client_id),
+      getChallanDetails(vehicle_number, client_id),
+    ]);
+    results.forEach((r, i) => {
+      const label = i === 0 ? 'RTO' : 'Challan';
+      if (r.status === 'rejected') {
+        console.error(`[initial_data_fetch] ${label} failed for ${vehicle_number}:`, r.reason?.message || r.reason);
+      } else {
+        console.table({ action: `initial_data_fetch_${label}_ok`, vehicle_number });
+      }
+    });
+  });
+}
 
 module.exports = (UserVehicle, models) => {
   const serviceFactory = userVehicleService;
@@ -44,7 +68,11 @@ module.exports = (UserVehicle, models) => {
       if (result && result.vehicle) {
         // Logging response
         console.table([result.vehicle.toJSON ? result.vehicle.toJSON() : result.vehicle]);
-        return res.status(201).json(result);
+        // Respond immediately, then kick off RTO + challan fetch in background
+        res.status(201).json(result);
+        const vn = (result.vehicle.vehicle_number || vehicle_number || '').trim().toUpperCase();
+        if (vn && client_id) triggerInitialDataFetch(vn, client_id);
+        return;
       }
 
       // Fallback
