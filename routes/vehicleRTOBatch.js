@@ -4,7 +4,12 @@ const vehicleRTOService = require('../services/vehicleRTOService');
 
 
 // Extracted batch logic for direct use
-async function processRTOBatch({ vehicleNumbers, clientID, batchSize = 4, delayMs = 1000 }) {
+async function processRTOBatch({
+  vehicleNumbers,
+  clientID,
+  batchSize = parseInt(process.env.ULIP_BATCH_CONCURRENCY, 10) || 4,
+  delayMs  = parseInt(process.env.ULIP_BATCH_DELAY_MS, 10)    || 1000,
+}) {
   if (!Array.isArray(vehicleNumbers) || vehicleNumbers.length === 0) {
     throw new Error('vehicleNumbers must be a non-empty array');
   }

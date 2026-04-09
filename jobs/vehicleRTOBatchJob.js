@@ -5,7 +5,7 @@ const { processRTOBatch } = require('../routes/vehicleRTOBatch');
 require('dotenv').config();
 
 // Schedule for 10:25 AM IST daily
-const SCHEDULE = process.env.RTO_JOB_CRON || '35 10 * * *';
+const SCHEDULE = process.env.RTO_JOB_CRON || '40 10 * * *';
 
 
 const { ScheduledJobRecords } = require('../models');
@@ -44,13 +44,12 @@ async function runVehicleRTOBatchJob() {
       const vehicleNumbers = vehicles.map(v => v.vehicle_number).filter(Boolean);
       console.log(`[${moment().format()}] [RTO-BATCH] Client ${client.id}: ${vehicleNumbers.length} active vehicles`);
       if (vehicleNumbers.length === 0) continue;
-      // 3. Call the batch function with reduced concurrency to avoid ULIP rate limiting
+      // 3. Call the batch function; concurrency/delay are read from env inside processRTOBatch.
+      //    The hard per-second limit is enforced globally by ulipRateLimiter.js.
       try {
         const batchResult = await processRTOBatch({
           vehicleNumbers,
           clientID: client.id,
-          batchSize: 2,    // 2 concurrent API calls (down from 4) to avoid rate limiting
-          delayMs: 3000    // 3s between batches (up from 1s)
         });
         totalSuccess += batchResult.successfulFetched || 0;
         totalFailed += (batchResult.failedRecords || []).length;
@@ -61,9 +60,11 @@ async function runVehicleRTOBatchJob() {
       } catch (err) {
         console.error(`[${moment().format()}] [RTO-BATCH] Batch error for client ${client.id}:`, err.message);
       }
-      // 4. Pause 5s between clients to give ULIP API breathing room
+      // Inter-client pause: configurable via ULIP_CLIENT_PAUSE_MS (default 2000ms).
+      // Gives ULIP a short breath between client batches beyond what the rate limiter enforces.
+      const clientPauseMs = parseInt(process.env.ULIP_CLIENT_PAUSE_MS, 10) || 2000;
       if (ci < clients.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, clientPauseMs));
       }
     }
     console.log(`[${moment().format()}] [RTO-BATCH] Job completed. Total success: ${totalSuccess}, Total failed: ${totalFailed}`);

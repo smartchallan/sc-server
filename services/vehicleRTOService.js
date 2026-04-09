@@ -1,6 +1,7 @@
 const axios = require('axios');
 require('dotenv').config();
 const { getValidToken, refreshToken } = require('../utils/ulipTokenManager');
+const { acquireSlot } = require('../utils/ulipRateLimiter');
 
 const xml2js = require('xml2js');
 
@@ -32,6 +33,9 @@ async function callUlipWithRetry(url, data) {
   const makeRequest = async (token) => axios.post(url, data, {
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
   });
+
+  // Acquire a rate-limit slot before hitting the ULIP API
+  await acquireSlot();
 
   let token = await getValidToken();
   try {

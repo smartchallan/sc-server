@@ -7,7 +7,13 @@ const momentTz = require('moment-timezone');
 // POST /getvehicleechallandata/batch
 // Body: { vehicleNumbers: ["KA01AB1234", ...], clientID: 123, exportCsv: true }
 
-async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
+async function processChallanBatch({
+  vehicleNumbers,
+  clientID,
+  exportCsv,
+  batchSize = parseInt(process.env.ULIP_BATCH_CONCURRENCY, 10) || 4,
+  delayMs   = parseInt(process.env.ULIP_BATCH_DELAY_MS, 10)    || 1000,
+}) {
   if (!Array.isArray(vehicleNumbers) || vehicleNumbers.length === 0) {
     throw new Error('vehicleNumbers must be a non-empty array');
   }
@@ -35,10 +41,9 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
     }
     return results;
   }
-  // Use 4 at a time, 1 second between batches
   const results = await runWithConcurrencyAndDelay(
     vehicleNumbers,
-    4, // batch size
+    batchSize,
     async (vn) => {
       try {
         const data = await service.getChallanDetails(vn, clientID);
@@ -187,7 +192,7 @@ async function processChallanBatch({ vehicleNumbers, clientID, exportCsv }) {
         return { vehicleNumber: vn, success: false, error: err.message };
       }
     },
-    1000 // 1 second delay between batches
+    delayMs
   );
   const successCount = results.filter(r => r.success).length;
   const failedRecords = results.filter(r => !r.success).map(r => ({ vehicleNumber: r.vehicleNumber, error: r.error }));

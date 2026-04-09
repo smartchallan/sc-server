@@ -2,6 +2,7 @@ const axios = require('axios');
 require('dotenv').config();
 const moment = require('moment');
 const { getValidToken, refreshToken } = require('../utils/ulipTokenManager');
+const { acquireSlot } = require('../utils/ulipRateLimiter');
 
 /** Normalize a date string to DD-MMM-YYYY, returns null if unparseable */
 function normalizeDate(val) {
@@ -52,6 +53,10 @@ const UserVehicle = UserVehicleModel(sequelize);
 
 async function getChallanDetails(vehicleNumber, clientID) {
   console.log('chkpoint 3');
+
+  // Acquire a rate-limit slot before hitting the ULIP API
+  await acquireSlot();
+
   let token = await getValidToken();
   const url = process.env.ULIP_ECHALLAN_DETAILS_URL;
   const headers = {
