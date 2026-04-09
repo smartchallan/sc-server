@@ -4,7 +4,7 @@ const vehicleRTOService = require('../services/vehicleRTOService');
 
 
 // Extracted batch logic for direct use
-async function processRTOBatch({ vehicleNumbers, clientID }) {
+async function processRTOBatch({ vehicleNumbers, clientID, batchSize = 4, delayMs = 1000 }) {
   if (!Array.isArray(vehicleNumbers) || vehicleNumbers.length === 0) {
     throw new Error('vehicleNumbers must be a non-empty array');
   }
@@ -32,7 +32,7 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
   }
   const results = await runWithConcurrencyAndDelay(
     vehicleNumbers,
-    4, // batch size
+    batchSize,
     async (vn) => {
       try {
         const data = await service.getRTODetails(vn, clientID);
@@ -41,7 +41,7 @@ async function processRTOBatch({ vehicleNumbers, clientID }) {
         return { vehicleNumber: vn, success: false, error: err.message };
       }
     },
-    1000 // 1 second delay between batches
+    delayMs
   );
   const successCount = results.filter(r => r.success).length;
   const failedRecords = results.filter(r => !r.success).map(r => ({ vehicleNumber: r.vehicleNumber, error: r.error }));

@@ -5,7 +5,7 @@ const { processRTOBatch } = require('../routes/vehicleRTOBatch');
 require('dotenv').config();
 
 // Schedule for 9:00 AM IST daily
-const SCHEDULE = process.env.RTO_JOB_CRON || '0 9 * * *';
+const SCHEDULE = process.env.RTO_JOB_CRON || '15 10 * * *';
 
 
 const { ScheduledJobRecords } = require('../models');
@@ -16,6 +16,7 @@ async function runVehicleRTOBatchJob() {
   let jobRecord;
   let jobStatus = 'success';
   let jobError = null;
+  const { Op } = require('sequelize');
   try {
     console.log(`[${moment().format()}] [RTO-BATCH] Job started.`);
     // Record job start
@@ -24,30 +25,48 @@ async function runVehicleRTOBatchJob() {
       job_status: 'started',
       job_started_at: jobStart
     });
-    // 1. Fetch all users with role 'client' and status 'active'
+    // 1. Fetch all client accounts (parent_id > 0 means they belong to an admin/dealer)
+    //    Note: 'role' column is not in the Sequelize model; use parent_id to identify clients
     const clients = await User.findAll({
-      where: { role: 'client', status: 'active' },
-      attributes: ['id']
+      where: { status: 'active', parent_id: { [Op.gt]: 0 } },
+      attributes: ['id', 'parent_id']
     });
-    console.log(`[${moment().format()}] [RTO-BATCH] Active clients:`, clients.map(c => c.id));
-    for (const client of clients) {
+    console.log(`[${moment().format()}] [RTO-BATCH] Active clients found: ${clients.length}`, clients.map(c => c.id));
+    let totalSuccess = 0;
+    let totalFailed = 0;
+    for (let ci = 0; ci < clients.length; ci++) {
+      const client = clients[ci];
       // 2. For every client, fetch all active vehicle numbers
       const vehicles = await UserVehicle.findAll({
         where: { client_id: client.id, status: 'active' },
         attributes: ['vehicle_number']
       });
-      const vehicleNumbers = vehicles.map(v => v.vehicle_number);
-      console.log(`[${moment().format()}] [RTO-BATCH] Client ${client.id} active vehicles:`, vehicleNumbers);
+      const vehicleNumbers = vehicles.map(v => v.vehicle_number).filter(Boolean);
+      console.log(`[${moment().format()}] [RTO-BATCH] Client ${client.id}: ${vehicleNumbers.length} active vehicles`);
       if (vehicleNumbers.length === 0) continue;
-      // 3. Call the batch function directly
+      // 3. Call the batch function with reduced concurrency to avoid ULIP rate limiting
       try {
-        const batchResult = await processRTOBatch({ vehicleNumbers, clientID: client.id });
-        console.log(`[${moment().format()}] [RTO-BATCH] Batch result:`, batchResult);
+        const batchResult = await processRTOBatch({
+          vehicleNumbers,
+          clientID: client.id,
+          batchSize: 2,    // 2 concurrent API calls (down from 4) to avoid rate limiting
+          delayMs: 3000    // 3s between batches (up from 1s)
+        });
+        totalSuccess += batchResult.successfulFetched || 0;
+        totalFailed += (batchResult.failedRecords || []).length;
+        console.log(`[${moment().format()}] [RTO-BATCH] Client ${client.id}: ${batchResult.successfulFetched}/${batchResult.total} succeeded`);
+        if (batchResult.failedRecords && batchResult.failedRecords.length > 0) {
+          console.warn(`[${moment().format()}] [RTO-BATCH] Client ${client.id} failures:`, batchResult.failedRecords.map(f => `${f.vehicleNumber}: ${f.error}`));
+        }
       } catch (err) {
-        console.error(`[${moment().format()}] [RTO-BATCH] Batch error for client ${client.id}:`, err);
+        console.error(`[${moment().format()}] [RTO-BATCH] Batch error for client ${client.id}:`, err.message);
+      }
+      // 4. Pause 5s between clients to give ULIP API breathing room
+      if (ci < clients.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
-    console.log(`[${moment().format()}] [RTO-BATCH] Job completed.`);
+    console.log(`[${moment().format()}] [RTO-BATCH] Job completed. Total success: ${totalSuccess}, Total failed: ${totalFailed}`);
   } catch (err) {
     jobStatus = 'failed';
     jobError = err.message;
