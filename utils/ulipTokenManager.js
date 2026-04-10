@@ -26,25 +26,28 @@ async function ulipLogin() {
   
   const response = await axios.post(url, payload, { headers });
 
-  // Log the response structure to diagnose token extraction path
+  // Log the FULL login response so we can see exactly what ULIP returns
   console.log('[ulipLogin] HTTP status:', response.status);
-  console.log('[ulipLogin] response.data keys:', Object.keys(response.data || {}));
-  console.log('[ulipLogin] response.data.response type:', typeof response.data?.response);
-  if (response.data?.response && typeof response.data.response === 'object') {
-    console.log('[ulipLogin] response.data.response keys:', Object.keys(response.data.response));
+  console.log('[ulipLogin] FULL response.data:', JSON.stringify(response.data));
+
+  // ULIP v1 returns token as a plain string in response.data.response
+  // Older/alternate format returns it in response.data.response.id
+  const raw = response.data?.response;
+  let token;
+  if (typeof raw === 'string' && raw.length > 10) {
+    token = raw;
+  } else if (raw && typeof raw === 'object') {
+    token = raw.id ?? raw.token ?? raw.access_token;
+  } else {
+    token = response.data?.token ?? response.data?.access_token ?? response.data?.id;
   }
 
-  const token = response.data?.response?.id
-    ?? response.data?.response?.token
-    ?? response.data?.token
-    ?? response.data?.response;
-
-  if (!token || typeof token !== 'string') {
+  if (!token || typeof token !== 'string' || token.length < 10) {
     console.error('[ulipLogin] FAILED to extract token. Full response.data:', JSON.stringify(response.data));
-    throw new Error(`ULIP login returned no usable token. response.data: ${JSON.stringify(response.data)}`);
+    throw new Error(`ULIP login returned no usable token. Full body: ${JSON.stringify(response.data)}`);
   }
 
-  console.log('[ulipLogin] Token extracted, first 20 chars:', token.substring(0, 20));
+  console.log('[ulipLogin] Token OK, length:', token.length, 'first 30 chars:', token.substring(0, 30));
 
   // Store token with 20 hour expiry
   tokenCache = {

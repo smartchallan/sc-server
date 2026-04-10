@@ -38,15 +38,24 @@ async function callUlipWithRetry(url, data) {
   await acquireSlot();
 
   let token = await getValidToken();
+  console.log('[callUlipWithRetry] Using token length:', token ? token.length : 'NULL', 'first 30:', token ? token.substring(0, 30) : 'NULL');
   try {
     return await makeRequest(token);
   } catch (err) {
     const status = err.response?.status;
+    const body403 = JSON.stringify(err.response?.data || '');
+    console.log(`[callUlipWithRetry] FIRST attempt failed ${status}. Response body:`, body403);
     if (status === 401 || status === 403) {
       // Cached token was rejected — force a fresh login and retry once
       console.table({ action: `ULIP ${status} — forcing token refresh TSPL`, url });
       token = await refreshToken();
-      return await makeRequest(token); // let this throw if still failing
+      console.log('[callUlipWithRetry] Retrying with new token length:', token ? token.length : 'NULL', 'first 30:', token ? token.substring(0, 30) : 'NULL');
+      try {
+        return await makeRequest(token);
+      } catch (err2) {
+        console.log(`[callUlipWithRetry] SECOND attempt also failed ${err2.response?.status}. Body:`, JSON.stringify(err2.response?.data || ''));
+        throw err2;
+      }
     }
     throw err;
   }
