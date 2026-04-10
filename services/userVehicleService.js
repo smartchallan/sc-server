@@ -46,7 +46,9 @@ module.exports = (UserVehicle) => {
         return {
           ...vehicle.toJSON(),
           rto_data,
-          challan_data
+          challan_data,
+          rto_updated_at: rtoRecord ? rtoRecord.updated_at : null,
+          challan_updated_at: challanRecord ? challanRecord.updated_at : null,
         };
       })
     );
