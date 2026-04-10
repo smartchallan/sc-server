@@ -44,7 +44,7 @@ async function callUlipWithRetry(url, data) {
     const status = err.response?.status;
     if (status === 401 || status === 403) {
       // Cached token was rejected — force a fresh login and retry once
-      console.table({ action: `ULIP ${status} — forcing token refresh`, url });
+      console.table({ action: `ULIP ${status} — forcing token refresh TSPL`, url });
       token = await refreshToken();
       return await makeRequest(token); // let this throw if still failing
     }
