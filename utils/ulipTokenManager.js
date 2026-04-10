@@ -25,18 +25,37 @@ async function ulipLogin() {
   console.table({ action: 'ULIP Login', url, username: payload.username });
   
   const response = await axios.post(url, payload, { headers });
-  const token = response.data.response.id;
-  
+
+  // Log the response structure to diagnose token extraction path
+  console.log('[ulipLogin] HTTP status:', response.status);
+  console.log('[ulipLogin] response.data keys:', Object.keys(response.data || {}));
+  console.log('[ulipLogin] response.data.response type:', typeof response.data?.response);
+  if (response.data?.response && typeof response.data.response === 'object') {
+    console.log('[ulipLogin] response.data.response keys:', Object.keys(response.data.response));
+  }
+
+  const token = response.data?.response?.id
+    ?? response.data?.response?.token
+    ?? response.data?.token
+    ?? response.data?.response;
+
+  if (!token || typeof token !== 'string') {
+    console.error('[ulipLogin] FAILED to extract token. Full response.data:', JSON.stringify(response.data));
+    throw new Error(`ULIP login returned no usable token. response.data: ${JSON.stringify(response.data)}`);
+  }
+
+  console.log('[ulipLogin] Token extracted, first 20 chars:', token.substring(0, 20));
+
   // Store token with 20 hour expiry
   tokenCache = {
     token,
     expiresAt: Date.now() + 20 * 60 * 60 * 1000 // 20 hours
   };
-  
-  console.table({ 
-    action: 'Token Cached', 
+
+  console.table({
+    action: 'Token Cached',
     expiresAt: new Date(tokenCache.expiresAt).toISOString(),
-    validFor: '20 hours' 
+    validFor: '20 hours'
   });
   
   return token;
