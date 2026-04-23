@@ -1,4 +1,5 @@
 const authService = require('../services/authService');
+const { signToken } = require('../utils/jwt');
 
 exports.login = async (req, res) => {
   try {
@@ -50,7 +51,15 @@ exports.login = async (req, res) => {
       hasClients = false;
     }
 
-    res.json({ message: 'Login successful', parent_id, hasClients, ...result, user_options });
+    // Issue JWT for this client
+    const token = signToken({
+      id: result.user.id,
+      email: result.user.email,
+      role: result.user.role,
+      parent_id,
+    });
+
+    res.json({ message: 'Login successful', token, parent_id, hasClients, ...result, user_options });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

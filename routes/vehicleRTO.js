@@ -19,6 +19,10 @@ router.post('/', async (req, res) => {
     console.log('[vehicleRTO] Success for', vehicleNumber);
     res.json(rtoDetails);
   } catch (error) {
+    if (error.code === 'ULIP_QUOTA_EXCEEDED') {
+      console.warn('[vehicleRTO] Daily quota exceeded:', error.ulipMessage);
+      return res.status(429).json({ error: 'ULIP_QUOTA_EXCEEDED', message: error.ulipMessage });
+    }
     console.error('[vehicleRTO] ERROR:', error.message);
     console.error('[vehicleRTO] Stack:', error.stack);
     res.status(500).json({ error: error.message });

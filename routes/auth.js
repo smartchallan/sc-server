@@ -7,6 +7,25 @@ const { sendWelcomeEmail, sendClientRegistrationNotification } = require('../ser
 
 router.post('/login', authController.login);
 
+// GET /auth/me — returns fresh user record for the JWT bearer
+router.get('/me', async (req, res) => {
+    try {
+        const userId = req.client?.id;
+        if (!userId) return res.status(401).json({ error: 'INVALID_TOKEN' });
+
+        const { User } = require('../models');
+        const user = await User.findOne({
+            where: { id: userId },
+            attributes: ['id', 'name', 'email', 'status', 'account_type', 'trial_expires_at', 'parent_id'],
+        });
+        if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });
+
+        res.json({ user: user.toJSON() });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/register', async (req, res) => {
     console.log('inside register user');
     try {

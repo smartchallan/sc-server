@@ -38,25 +38,28 @@ async function callUlipWithRetry(url, data) {
   await acquireSlot();
 
   let token = await getValidToken();
-  console.log('[callUlipWithRetry] Using token length:', token ? token.length : 'NULL', 'first 30:', token ? token.substring(0, 30) : 'NULL');
   try {
     return await makeRequest(token);
   } catch (err) {
     const status = err.response?.status;
-    const body403 = JSON.stringify(err.response?.data || '');
-    console.log(`[callUlipWithRetry] FIRST attempt failed ${status}. Response body:`, body403);
-    if (status === 401 || status === 403) {
-      // Cached token was rejected — force a fresh login and retry once
-      console.table({ action: `ULIP ${status} — forcing token refresh TSPL`, url });
-      token = await refreshToken();
-      console.log('[callUlipWithRetry] Retrying with new token length:', token ? token.length : 'NULL', 'first 30:', token ? token.substring(0, 30) : 'NULL');
-      try {
-        return await makeRequest(token);
-      } catch (err2) {
-        console.log(`[callUlipWithRetry] SECOND attempt also failed ${err2.response?.status}. Body:`, JSON.stringify(err2.response?.data || ''));
-        throw err2;
-      }
+    const errBody = err.response?.data;
+    const errMsg = errBody?.message || '';
+
+    // Daily quota exhausted — no point retrying or refreshing the token
+    if (status === 403 && errMsg.toLowerCase().includes('daily usage limit')) {
+      const quotaErr = new Error(`ULIP daily quota reached for ${url}. ${errMsg}`);
+      quotaErr.code = 'ULIP_QUOTA_EXCEEDED';
+      quotaErr.ulipMessage = errMsg;
+      throw quotaErr;
     }
+
+    // Token rejected — force a fresh login and retry once
+    if (status === 401 || status === 403) {
+      console.table({ action: `ULIP ${status} — forcing token refresh`, url });
+      token = await refreshToken();
+      return await makeRequest(token);
+    }
+
     throw err;
   }
 }

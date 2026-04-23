@@ -62,7 +62,9 @@ app.use(cors({
     'https://globalafs.smartchallan.com',
     'http://globalafs.smartchallan.com',
     'https://challan.eyeonfleet.com',
-    'http://challan.eyeonfleet.com'
+    'http://challan.eyeonfleet.com',
+    'https://smartchallan.vt4india.com',
+    'http://smartchallan.vt4india.com'
   ],
   credentials: true
 }));
@@ -75,6 +77,10 @@ app.use((req, res, next) => {
   console.table({ method: req.method, url: req.url, body: req.body });
   next();
 });
+
+// JWT auth — runs on every route except the public allowlist in the middleware
+const validateClient = require('./middleware/validateClient');
+app.use(validateClient);
 
 // Routers
 
