@@ -1,4 +1,5 @@
-const { User, UserVehicle, DiVehicleChallanJob, VehicleChallan } = require('../models');
+const { User, UserVehicle, DiVehicleChallanJob, VehicleChallan, VehicleRTOData } = require('../models');
+const moment = require('moment');
 
 // Helper to recursively fetch all clients under a parent id
 async function fetchAllClients(parentId, allClients = []) {
@@ -102,6 +103,39 @@ exports.getNetworkStats = async (req, res) => {
 
     challanStats.pending = challanStats.total - challanStats.paid;
 
+    // RTO renewal stats — query di_vehicle_rto_data by vehicle_number
+    const rtoRecords = vehicleNumbers.length > 0
+      ? await VehicleRTOData.findAll({
+          where: { vehicle_number: vehicleNumbers },
+          attributes: ['vehicle_number', 'insurance_exp', 'road_tax_exp', 'fitness_exp', 'pollution_exp']
+        })
+      : [];
+
+    const today = moment().startOf('day');
+    const thirtyDaysLater = moment().add(30, 'days').startOf('day');
+
+    function classifyDate(dateVal) {
+      if (!dateVal) return 'no_data';
+      const d = moment(dateVal, 'YYYY-MM-DD', true);
+      if (!d.isValid()) return 'no_data';
+      if (d.isBefore(today)) return 'expired';
+      if (d.isSameOrBefore(thirtyDaysLater)) return 'expiring_soon';
+      return 'valid';
+    }
+
+    const renewalStats = { insurance: 0, road_tax: 0, fitness: 0, pollution: 0 };
+
+    for (const r of rtoRecords) {
+      if (classifyDate(r.insurance_exp) === 'expired') renewalStats.insurance++;
+      if (classifyDate(r.road_tax_exp) === 'expired') renewalStats.road_tax++;
+      if (classifyDate(r.fitness_exp) === 'expired') renewalStats.fitness++;
+      if (classifyDate(r.pollution_exp) === 'expired') renewalStats.pollution++;
+    }
+
+    renewalStats.totalExpired =
+      renewalStats.insurance + renewalStats.road_tax +
+      renewalStats.fitness + renewalStats.pollution;
+
     const result = {
       hasNetwork,
       totalClients: allClients.length,
@@ -114,7 +148,8 @@ exports.getNetworkStats = async (req, res) => {
         total: parseFloat(challanStats.total.toFixed(2)),
         paid: parseFloat(challanStats.paid.toFixed(2)),
         pending: parseFloat(challanStats.pending.toFixed(2))
-      }
+      },
+      renewalStats
     };
 
     return res.json(result);
