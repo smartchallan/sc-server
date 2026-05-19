@@ -130,6 +130,16 @@ module.exports = (models) => {
           });
         }
 
+        // Promote the client's account to 'billable' if not already
+        try {
+          const clientUser = await User.findOne({ where: { id: client_id }, attributes: ['id', 'account_type'] });
+          if (clientUser && clientUser.account_type !== 'billable') {
+            await clientUser.update({ account_type: 'billable' });
+          }
+        } catch (acctErr) {
+          console.error('[billing] failed to update account_type to billable:', acctErr);
+        }
+
         // Send email alert to dealer if expiry is within 15 days
         const days = daysUntil(plan_end_dt);
         if (days !== null && days <= 15) {

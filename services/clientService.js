@@ -58,6 +58,7 @@ exports.getClientNetwork = async (parentId) => {
 
       console.log(`Found ${children.length} children for parent_id ${pid}:`, children.map(c => c.id));
 
+      const AppUserVehicle = appModels.UserVehicle;
       const results = [];
       for (const c of children) {
         const nested = await fetchChildren(c.id);
@@ -72,6 +73,16 @@ exports.getClientNetwork = async (parentId) => {
           console.error('Error fetching user_meta for user', c.id, metaErr && metaErr.stack ? metaErr.stack : metaErr);
           user_meta = null;
         }
+        // Count this user's own vehicles
+        let vehicle_count = 0;
+        try {
+          if (AppUserVehicle) {
+            vehicle_count = await AppUserVehicle.count({ where: { client_id: c.id } });
+          }
+        } catch (vErr) {
+          console.error('Error counting vehicles for user', c.id, vErr && vErr.stack ? vErr.stack : vErr);
+          vehicle_count = 0;
+        }
         // Build a sanitized object to ensure sensitive/unused fields are not returned
         const item = {
           id: c.id,
@@ -82,6 +93,7 @@ exports.getClientNetwork = async (parentId) => {
           last_login_at: c.last_login_at,
           created_at: c.created_at,
           user_meta: user_meta,
+          vehicle_count,
           children: nested
         };
         results.push(item);
