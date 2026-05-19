@@ -165,19 +165,36 @@ module.exports = (models) => {
       }
     });
 
-    // GET /userbillingsetting/dealer?dealer_id=X — fetch active billing records for all clients under a dealer
+    // GET /userbillingsetting/dealer?dealer_id=X — fetch active billing records for ALL clients
+    // in the dealer's network (direct + nested descendants).
     router.get('/userbillingsetting/dealer', async (req, res) => {
       const { dealer_id } = req.query;
       if (!dealer_id) return res.status(400).json({ error: 'dealer_id is required.' });
       try {
-        // Get all clients in dealer's network first via subquery-style approach
         const { User } = models;
-        const clients = await User.findAll({ where: { parent_id: dealer_id }, attributes: ['id'] });
-        const clientIds = clients.map(c => c.id);
-        if (clientIds.length === 0) return res.json({ billingRecords: [] });
+        // BFS to collect the dealer's entire descendant network
+        const visited = new Set();
+        const allIds = [];
+        let frontier = [dealer_id];
+        while (frontier.length > 0) {
+          const children = await User.findAll({
+            where: { parent_id: frontier },
+            attributes: ['id']
+          });
+          const nextFrontier = [];
+          for (const c of children) {
+            const idStr = String(c.id);
+            if (visited.has(idStr)) continue;
+            visited.add(idStr);
+            allIds.push(c.id);
+            nextFrontier.push(c.id);
+          }
+          frontier = nextFrontier;
+        }
+        if (allIds.length === 0) return res.json({ billingRecords: [] });
         const { Op } = require('sequelize');
         const billingRecords = await UserBilling.findAll({
-          where: { user_id: { [Op.in]: clientIds }, billing_plan_status: 'active' }
+          where: { user_id: { [Op.in]: allIds }, billing_plan_status: 'active' }
         });
         return res.json({ billingRecords });
       } catch (err) {
