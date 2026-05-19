@@ -119,6 +119,7 @@ const userOptionsRouter = require('./routes/userOptions');
 const testEmailRouter = require('./routes/testEmail');
 const sendEmailRouter = require('./routes/sendEmail');
 const cartRouter = require('./routes/cart');
+const userMetaRouter = require('./routes/userMeta')(models);
 const vehicleReportRouter = require('./routes/getVehicleReport');
 const userNotificationEmailRouter = require('./routes/userNotificationEmail');
 const getClientNetworkRouter = require('./routes/getClientNetwork');
@@ -138,6 +139,7 @@ app.use('/useroptions', userOptionsRouter);
 app.use('/testemail', testEmailRouter);
 app.use('/sendemail', sendEmailRouter);
 app.use('/cart', cartRouter);
+app.use('/usermeta', userMetaRouter);
 app.use('/usernotificationemail', userNotificationEmailRouter);
 app.use('/saveuseractivity', userActivityRouter);
 

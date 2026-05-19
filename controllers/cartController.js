@@ -9,6 +9,39 @@ exports.get = async (req, res) => {
     res.status(400).json({ success: false, error: err.message });
   }
 };
+
+// GET /cart/inbox?user_id=X
+// Returns every cart whose client is a descendant of user_id (anywhere in the subtree).
+// Each row is decorated with client_name and parent (dealer) name for display.
+exports.inbox = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) {
+      return res.status(400).json({ success: false, error: 'user_id is required' });
+    }
+    const carts = await cartService.getInbox({ user_id });
+    res.json({ success: true, data: carts });
+  } catch (err) {
+    console.error('Error fetching cart inbox:', err);
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
+
+// PATCH /cart/:id/status — root operations only (caller must have no parent)
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, actor_user_id } = req.body;
+    if (!status || !actor_user_id) {
+      return res.status(400).json({ success: false, error: 'status and actor_user_id are required' });
+    }
+    const result = await cartService.updateStatus({ cart_id: id, status, actor_user_id });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('Error updating cart status:', err);
+    res.status(err.statusCode || 400).json({ success: false, error: err.message });
+  }
+};
 exports.update = async (req, res) => {
   try {
     const payload = req.body;

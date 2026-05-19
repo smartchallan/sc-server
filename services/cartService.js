@@ -42,8 +42,82 @@ exports.updateCart = async (payload) => {
   if (affectedRows === 0) throw new Error('No cart found to update');
   return { success: true };
 };
-const { Cart } = require('../models');
-const { CartLineItem } = require('../models');
+const { Cart, CartLineItem, User } = require('../models');
+const { Op } = require('sequelize');
+
+const ALLOWED_STATUSES = ['pending', 'payment_received', 'in_progress', 'completed'];
+
+// BFS down a parent's subtree, returning all descendant user ids
+async function collectDescendants(rootId) {
+  const ids = new Set();
+  let frontier = [rootId];
+  while (frontier.length > 0) {
+    const children = await User.findAll({ where: { parent_id: frontier }, attributes: ['id'] });
+    const next = [];
+    for (const c of children) {
+      if (ids.has(c.id)) continue;
+      ids.add(c.id);
+      next.push(c.id);
+    }
+    frontier = next;
+  }
+  return Array.from(ids);
+}
+
+exports.getInbox = async ({ user_id }) => {
+  const descendantIds = await collectDescendants(user_id);
+  // user_id is included so the dealer/operations also sees requests they themselves raised
+  const eligible = [Number(user_id), ...descendantIds];
+  const carts = await Cart.findAll({
+    where: { client_id: { [Op.in]: eligible } },
+    order: [['created_at', 'DESC']],
+    include: [{ model: CartLineItem, as: 'line_items' }],
+  });
+
+  // Attach client name + immediate dealer name for display
+  const clientIds = Array.from(new Set(carts.map(c => c.client_id).filter(Boolean)));
+  const parentIds = Array.from(new Set(carts.map(c => c.parent_id).filter(Boolean)));
+  const allUserIds = Array.from(new Set([...clientIds, ...parentIds]));
+  const users = allUserIds.length
+    ? await User.findAll({ where: { id: { [Op.in]: allUserIds } }, attributes: ['id', 'name'], raw: true })
+    : [];
+  const nameById = {};
+  users.forEach(u => { nameById[u.id] = u.name; });
+
+  return carts.map(c => {
+    const j = c.toJSON();
+    j.client_name = nameById[j.client_id] || null;
+    j.dealer_name = nameById[j.parent_id] || null;
+    return j;
+  });
+};
+
+exports.updateStatus = async ({ cart_id, status, actor_user_id }) => {
+  if (!ALLOWED_STATUSES.includes(status)) {
+    const err = new Error(`Invalid status. Allowed: ${ALLOWED_STATUSES.join(', ')}`);
+    err.statusCode = 400;
+    throw err;
+  }
+  const actor = await User.findOne({ where: { id: actor_user_id }, attributes: ['id', 'parent_id'] });
+  if (!actor) {
+    const err = new Error('Actor user not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (actor.parent_id) {
+    const err = new Error('Only the root operations account can update request status.');
+    err.statusCode = 403;
+    throw err;
+  }
+  const cart = await Cart.findOne({ where: { id: cart_id } });
+  if (!cart) {
+    const err = new Error('Request not found.');
+    err.statusCode = 404;
+    throw err;
+  }
+  await cart.update({ status, last_updated_by: 'admin', updated_at: new Date() });
+  return cart;
+};
 
 exports.createCart = async (payload) => {
   // Validate mandatory fields

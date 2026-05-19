@@ -12,7 +12,15 @@ module.exports = (sequelize) => {
     zip: { type: DataTypes.STRING },
     country: { type: DataTypes.STRING },
   business_category: { type: DataTypes.STRING },
-  gtin: { type: DataTypes.STRING }
+  gtin: { type: DataTypes.STRING },
+  // Challan settlement — UPI for receiving payment (dealer-level)
+  upi_id: { type: DataTypes.STRING(128), allowNull: true },
+  upi_payee_name: { type: DataTypes.STRING(128), allowNull: true },
+  // Default pricing — dealer level; per-client overrides also live in this table
+  default_online_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+  default_court_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+  default_virtual_court_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+  default_gst_percent: { type: DataTypes.DECIMAL(5, 2), allowNull: true }
   }, {
     tableName: 'di_user_meta',
     timestamps: false
