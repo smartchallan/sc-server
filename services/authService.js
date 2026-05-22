@@ -69,7 +69,7 @@ async function registerUser(data) {
     const accountType = data.account_type || 'trial';
     let trialExpiresAt = null;
     if (accountType === 'trial') {
-        const days = parseInt(process.env.TRIAL_VALIDITY_DAYS, 10) || 7;
+        const days = parseInt(process.env.TRIAL_VALIDITY_DAYS, 10) || 3;
         trialExpiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
     }
 
