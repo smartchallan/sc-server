@@ -65,11 +65,26 @@ async function collectDescendants(rootId) {
 }
 
 exports.getInbox = async ({ user_id }) => {
-  const descendantIds = await collectDescendants(user_id);
-  // user_id is included so the dealer/operations also sees requests they themselves raised
-  const eligible = [Number(user_id), ...descendantIds];
+  const actor = await User.findOne({ where: { id: user_id }, attributes: ['id', 'parent_id'] });
+  if (!actor) throw new Error('User not found');
+
+  let whereClause;
+  if (!actor.parent_id) {
+    // Root / top account (no parent) — sees every request
+    whereClause = {};
+  } else {
+    // Dealer or client — sees only requests where they are the immediate parent
+    // (they are the direct dealer for those clients), plus their own requests.
+    whereClause = {
+      [Op.or]: [
+        { parent_id: Number(user_id) },
+        { client_id: Number(user_id) },
+      ],
+    };
+  }
+
   const carts = await Cart.findAll({
-    where: { client_id: { [Op.in]: eligible } },
+    where: whereClause,
     order: [['created_at', 'DESC']],
     include: [{ model: CartLineItem, as: 'line_items' }],
   });

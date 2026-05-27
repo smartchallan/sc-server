@@ -22,6 +22,7 @@ const {
   Cart,
   UserBilling,
   ClientNotification,
+  VehicleReport,
 } = require('./models');
 const { DiDriverData } = require('./models');
 
@@ -39,7 +40,7 @@ if (!User.associations.billing) {
 const models = {
   User, UserMeta, UserVehicle, UserVehicles, UserSettings,
   UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling,
-  ClientNotification,
+  ClientNotification, VehicleReport,
 };
 
 models.DiDriverData = DiDriverData;
@@ -122,6 +123,7 @@ const sendEmailRouter = require('./routes/sendEmail');
 const cartRouter = require('./routes/cart');
 const userMetaRouter = require('./routes/userMeta')(models);
 const vehicleReportRouter = require('./routes/getVehicleReport');
+const vehicleReportNewRouter = require('./routes/vehicleReport');
 const userNotificationEmailRouter = require('./routes/userNotificationEmail');
 const getClientNetworkRouter = require('./routes/getClientNetwork');
 const userActivityRouter = require('./routes/userActivity');
@@ -155,6 +157,7 @@ app.use('/getnetworkstats', getNetworkStatsRouter);
 app.use('/master-search', masterSearchRouter);
 
 app.use('/getvehiclereport', vehicleReportRouter);
+app.use('/vehiclereport', vehicleReportNewRouter);
 
 // ULIP Services
 app.use('/getvehiclertodata', vehicleRTORouter);
