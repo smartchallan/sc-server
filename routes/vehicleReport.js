@@ -1,91 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const xml2js = require('xml2js');
-const moment = require('moment');
-const { getValidToken, refreshToken } = require('../utils/ulipTokenManager');
-const { acquireSlot } = require('../utils/ulipRateLimiter');
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-async function callUlip(url, data) {
-  await acquireSlot();
-  let token = await getValidToken();
-  const makeReq = (t) => axios.post(url, data, {
-    headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-  });
-  try {
-    return await makeReq(token);
-  } catch (err) {
-    const status = err.response?.status;
-    const errMsg = (err.response?.data?.message || '').toLowerCase();
-    if (status === 403 && errMsg.includes('daily usage limit')) {
-      const e = new Error(`ULIP daily quota reached`);
-      e.code = 'ULIP_QUOTA_EXCEEDED';
-      throw e;
-    }
-    if (status === 401 || status === 403) {
-      token = await refreshToken();
-      return await makeReq(token);
-    }
-    throw err;
-  }
-}
-
-async function fetchRTOData(vehicleNumber) {
-  try {
-    const url = process.env.ULIP_VAHAN_DETAILS_URL;
-    const response = await callUlip(url, { vehiclenumber: vehicleNumber });
-    const raw = response.data?.response?.[0]?.response;
-    if (!raw) return { status: 'not_available', data: null };
-    let jsonResult;
-    await xml2js.parseStringPromise(raw, { explicitArray: false })
-      .then(r => { jsonResult = r; })
-      .catch(() => { jsonResult = null; });
-    if (!jsonResult) return { status: 'parse_error', data: null };
-    return { status: 'success', data: jsonResult };
-  } catch (err) {
-    if (err.code === 'ULIP_QUOTA_EXCEEDED') throw err;
-    console.error('[vehicleReport] RTO fetch error:', err.message);
-    return { status: 'failed', data: null };
-  }
-}
-
-async function fetchChallanData(vehicleNumber) {
-  try {
-    await acquireSlot();
-    let token = await getValidToken();
-    const url = process.env.ULIP_ECHALLAN_DETAILS_URL;
-    const makeReq = (t) => axios.post(url, { vehicleNumber: vehicleNumber }, {
-      headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
-    });
-    let response;
-    try {
-      response = await makeReq(token);
-    } catch (err) {
-      const status = err.response?.status;
-      const bodyText = JSON.stringify(err.response?.data || '').toLowerCase();
-      if (status === 401 || bodyText.includes('invalid token')) {
-        token = await refreshToken();
-        response = await makeReq(token);
-      } else {
-        throw err;
-      }
-    }
-    const pendingData = response.data?.response?.[0]?.response?.data?.Pending_data;
-    const disposedData = response.data?.response?.[0]?.response?.data?.Disposed_data;
-    const hasPending = pendingData && (Array.isArray(pendingData) ? pendingData.length > 0 : true);
-    const hasDisposed = disposedData && (Array.isArray(disposedData) ? disposedData.length > 0 : true);
-    if (!hasPending && !hasDisposed) {
-      return { status: 'no_challans', data: { Pending_data: null, Disposed_data: null } };
-    }
-    return { status: 'success', data: { Pending_data: pendingData || null, Disposed_data: disposedData || null } };
-  } catch (err) {
-    if (err.code === 'ULIP_QUOTA_EXCEEDED') throw err;
-    console.error('[vehicleReport] Challan fetch error:', err.message);
-    return { status: 'failed', data: null };
-  }
-}
+const vehicleRTOService = require('../services/vehicleRTOService');
+const vehicleChallanService = require('../services/vehicleChallanService');
 
 // ── POST /vehiclereport/generate ─────────────────────────────────────────────
 
@@ -101,6 +17,11 @@ router.post('/generate', async (req, res) => {
     const User = req.app.locals.models?.User;
 
     if (!VehicleReport || !UserOptions || !User) {
+      console.error('[vehicleReport] Missing models:', {
+        VehicleReport: !!VehicleReport,
+        UserOptions: !!UserOptions,
+        User: !!User,
+      });
       return res.status(500).json({ error: 'Required models not available' });
     }
 
@@ -130,21 +51,48 @@ router.post('/generate', async (req, res) => {
       }
     }
 
-    // ── 4. Fetch RTO + Challan data ─────────────────────────────────────────
+    // ── 4. Fetch RTO data via existing service ──────────────────────────────
     const vNum = vehicleNumber.trim().toUpperCase();
-    const [rtoResult, challanResult] = await Promise.allSettled([
-      fetchRTOData(vNum),
-      fetchChallanData(vNum),
-    ]);
+    let rto = { status: 'failed', data: null };
+    let challan = { status: 'failed', data: null };
 
-    const rto = rtoResult.status === 'fulfilled' ? rtoResult.value : { status: 'failed', data: null };
-    const challan = challanResult.status === 'fulfilled' ? challanResult.value : { status: 'failed', data: null };
+    try {
+      const rtoData = await vehicleRTOService.getRTODetails(vNum, clientId);
+      rto = { status: 'success', data: rtoData };
+    } catch (err) {
+      if (err.code === 'ULIP_QUOTA_EXCEEDED') throw err;
+      console.error('[vehicleReport] RTO fetch error:', err.message);
+      rto = { status: 'failed', data: null };
+    }
 
+    // ── 5. Fetch Challan data via existing service ──────────────────────────
+    try {
+      const challanResult = await vehicleChallanService.getChallanDetails(vNum, clientId);
+      // Service returns { success: true, message: '...no challan...' } when no challans
+      if (challanResult && challanResult.success && challanResult.message) {
+        challan = { status: 'no_challans', data: { Pending_data: null, Disposed_data: null } };
+      } else {
+        const hasPending = challanResult?.Pending_data && (Array.isArray(challanResult.Pending_data) ? challanResult.Pending_data.length > 0 : true);
+        const hasDisposed = challanResult?.Disposed_data && (Array.isArray(challanResult.Disposed_data) ? challanResult.Disposed_data.length > 0 : true);
+        challan = {
+          status: hasPending || hasDisposed ? 'success' : 'no_challans',
+          data: {
+            Pending_data: challanResult?.Pending_data || null,
+            Disposed_data: challanResult?.Disposed_data || null,
+          },
+        };
+      }
+    } catch (err) {
+      if (err.code === 'ULIP_QUOTA_EXCEEDED') throw err;
+      console.error('[vehicleReport] Challan fetch error:', err.message);
+      challan = { status: 'failed', data: null };
+    }
+
+    // ── 6. Store report ─────────────────────────────────────────────────────
     const expiryDays = parseInt(process.env.VEHICLE_REPORT_EXPIRY_DAYS || '30', 10);
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000);
 
-    // ── 5. Store report ─────────────────────────────────────────────────────
     const report = await VehicleReport.create({
       client_id: clientId,
       dealer_id: dealerId,
@@ -191,7 +139,6 @@ router.get('/list', async (req, res) => {
     const VehicleReport = req.app.locals.models?.VehicleReport;
     if (!VehicleReport) return res.status(500).json({ error: 'VehicleReport model not available' });
 
-    const { Op } = require('sequelize');
     const reports = await VehicleReport.findAll({
       where: { client_id },
       attributes: ['id', 'vehicle_number', 'rto_status', 'challan_status', 'status', 'generated_at', 'expires_at'],

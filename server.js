@@ -37,10 +37,12 @@ if (!User.associations.billing) {
   UserBilling.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 }
 
+const { UserOptions } = require('./models');
+
 const models = {
   User, UserMeta, UserVehicle, UserVehicles, UserSettings,
   UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling,
-  ClientNotification, VehicleReport,
+  ClientNotification, VehicleReport, UserOptions,
 };
 
 models.DiDriverData = DiDriverData;
