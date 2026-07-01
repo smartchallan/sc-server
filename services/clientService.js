@@ -76,22 +76,29 @@ exports.getClientNetwork = async (parentId) => {
           console.error('Error fetching user_meta for user', c.id, metaErr && metaErr.stack ? metaErr.stack : metaErr);
           user_meta = null;
         }
-        // Count this user's own vehicles, split by status. Billable = active +
+        // Count this user's OWN vehicles, split by status. Billable = active +
         // vehicles deleted within the current (calendar) month; vehicles deleted
         // in an earlier month are no longer billed.
-        let active_count = 0, deleted_count = 0, deleted_this_month = 0;
+        let own_active = 0, own_deleted = 0, own_deleted_this_month = 0;
         try {
           if (AppUserVehicle) {
-            active_count = await AppUserVehicle.count({ where: { client_id: c.id, status: 'active' } });
-            deleted_count = await AppUserVehicle.count({ where: { client_id: c.id, status: 'deleted' } });
-            deleted_this_month = await AppUserVehicle.count({
+            own_active = await AppUserVehicle.count({ where: { client_id: c.id, status: 'active' } });
+            own_deleted = await AppUserVehicle.count({ where: { client_id: c.id, status: 'deleted' } });
+            own_deleted_this_month = await AppUserVehicle.count({
               where: { client_id: c.id, status: 'deleted', deleted_at: { [Op.gte]: monthStart } }
             });
           }
         } catch (vErr) {
           console.error('Error counting vehicles for user', c.id, vErr && vErr.stack ? vErr.stack : vErr);
         }
-        const billable_count = active_count + deleted_this_month;
+        const own_billable = own_active + own_deleted_this_month;
+        // Aggregate across the whole downstream network (to the nth level): a
+        // dealer's counts include every sub-client's vehicles. `nested` items
+        // already carry their own aggregated totals, so we just add them up.
+        const sumChild = (key) => nested.reduce((s, ch) => s + (Number(ch[key]) || 0), 0);
+        const active_count = own_active + sumChild('active_count');
+        const deleted_count = own_deleted + sumChild('deleted_count');
+        const billable_count = own_billable + sumChild('billable_count');
         // Build a sanitized object to ensure sensitive/unused fields are not returned
         const item = {
           id: c.id,
@@ -102,9 +109,9 @@ exports.getClientNetwork = async (parentId) => {
           last_login_at: c.last_login_at,
           created_at: c.created_at,
           user_meta: user_meta,
-          // vehicle_count kept for backward-compat (total own vehicles); the
-          // network aggregate on the client sums this field.
-          vehicle_count: active_count + deleted_count,
+          // Own (non-aggregated) total, kept for the client-side network tooltip.
+          vehicle_count: own_active + own_deleted,
+          // Aggregated across the full sub-network (own + all descendants).
           active_count,
           deleted_count,
           billable_count,
