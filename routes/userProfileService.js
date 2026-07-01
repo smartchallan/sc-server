@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const updateUserPassword = require('../services/userProfileService');
+const { purgeVehicleData } = require('../services/vehicleService');
 
 module.exports = (models) => {
   const { User, UserVehicle } = models;
@@ -49,15 +50,30 @@ module.exports = (models) => {
         return res.status(404).json({ error: 'User not found.' });
       }
 
-      // Cascade status to all vehicles of this user (client_id = user_id).
-      // Vehicles only support 'active' / 'deleted', so a deactivated account
-      // marks its vehicles 'deleted' (status-only; reactivating restores them).
+      // Cascade status to this user's vehicles (client_id = user_id). Vehicles
+      // only support 'active' / 'deleted'. This is a status-only toggle (RTO/challan
+      // data is preserved) so enabling the account restores the vehicles.
       const now = new Date();
-      const vehicleStatus = status === 'active' ? 'active' : 'deleted';
-      await UserVehicle.update(
-        { status: vehicleStatus, deleted_at: vehicleStatus === 'deleted' ? now : null, updated_at: now },
-        { where: { client_id: user_id } }
-      );
+      if (status === 'active') {
+        // Re-activate: bring the soft-deleted vehicles back and clear deleted_at.
+        await UserVehicle.update(
+          { status: 'active', deleted_at: null, updated_at: now },
+          { where: { client_id: user_id, status: 'deleted' } }
+        );
+      } else {
+        // Disable: delete the currently-active vehicles (leaving earlier deletions
+        // with their original deleted_at) and purge their RTO/challan data.
+        const activeVehicles = await UserVehicle.findAll({
+          where: { client_id: user_id, status: 'active' },
+          attributes: ['vehicle_number']
+        });
+        const vehicleNumbers = activeVehicles.map(v => v.vehicle_number).filter(Boolean);
+        await UserVehicle.update(
+          { status: 'deleted', deleted_at: now, updated_at: now },
+          { where: { client_id: user_id, status: 'active' } }
+        );
+        await purgeVehicleData(models, { client_id: user_id, vehicleNumbers });
+      }
 
       return res.json({ message: `User and their vehicles marked as ${status} successfully.` });
     } catch (err) {

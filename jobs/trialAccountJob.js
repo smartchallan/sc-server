@@ -1,6 +1,8 @@
 require('dotenv').config();
-const { User } = require('../models');
+const models = require('../models');
+const { User, UserVehicle } = models;
 const { sendTrialExpiryReminder } = require('../services/emailService');
+const { purgeVehicleData } = require('../services/vehicleService');
 const { Op } = require('sequelize');
 
 async function runTrialAccountJob() {
@@ -31,10 +33,22 @@ async function runTrialAccountJob() {
 
       try {
         if (msLeft <= 0) {
-          // ── Expired: mark inactive ──
+          // ── Expired: mark account inactive and delete its vehicles ──
           await user.update({ status: 'inactive' });
+          // Delete the client's active vehicles and purge their RTO/challan data
+          // from every table (re-activating later refetches via the jobs).
+          const activeVehicles = await UserVehicle.findAll({
+            where: { client_id: userObj.id, status: 'active' },
+            attributes: ['vehicle_number']
+          });
+          const vehicleNumbers = activeVehicles.map(v => v.vehicle_number).filter(Boolean);
+          const [vehiclesDeleted] = await UserVehicle.update(
+            { status: 'deleted', deleted_at: now, updated_at: now },
+            { where: { client_id: userObj.id, status: 'active' } }
+          );
+          await purgeVehicleData(models, { client_id: userObj.id, vehicleNumbers });
           deactivated++;
-          console.table({ action: 'deactivated', userId: userObj.id, email: userObj.email });
+          console.table({ action: 'deactivated', userId: userObj.id, email: userObj.email, vehiclesDeleted });
         } else if (daysLeft <= REMINDER_DAYS) {
           // ── Expiring soon: send reminder ──
           let dealerEmail = null;
