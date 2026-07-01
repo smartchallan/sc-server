@@ -26,15 +26,13 @@ async function fetchAdminData(models, adminId) {
   // For each client, fetch vehicle counts by status
   const clients = await Promise.all(clientsRaw.map(async (client) => {
     const active = await UserVehicle.count({ where: { client_id: client.id, status: 'active' } });
-    const inactive = await UserVehicle.count({ where: { client_id: client.id, status: 'inactive' } });
     const deleted = await UserVehicle.count({ where: { client_id: client.id, status: 'deleted' } });
     return {
       ...client.toJSON(),
       vehicle_counts: {
         active,
-        inactive,
         deleted,
-        total: active + inactive + deleted
+        total: active + deleted
       }
     };
   }));

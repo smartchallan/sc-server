@@ -133,6 +133,7 @@ const userActivityRouter = require('./routes/userActivity');
 const getNetworkStatsRouter = require('./routes/getNetworkStats');
 const notificationsRouter = require('./routes/notifications')(models);
 const masterSearchRouter = require('./routes/masterSearch')(models);
+const jobLastRunRouter = require('./routes/jobLastRun')(models);
 
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
@@ -157,6 +158,9 @@ app.use('/getnetworkstats', getNetworkStatsRouter);
 
 // Master search across dealer network
 app.use('/master-search', masterSearchRouter);
+
+// Last successful run time of the RTO / challan background jobs
+app.use('/joblastrun', jobLastRunRouter);
 
 app.use('/getvehiclereport', vehicleReportRouter);
 app.use('/vehiclereport', vehicleReportNewRouter);

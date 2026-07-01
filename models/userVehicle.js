@@ -11,7 +11,7 @@ module.exports = (sequelize) => {
     registered_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     status: {
-      type: DataTypes.ENUM('active', 'inactive', 'deleted'),
+      type: DataTypes.ENUM('active', 'deleted'),
       allowNull: false,
       defaultValue: 'active'
     },

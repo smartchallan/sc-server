@@ -28,8 +28,8 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   if (!vehicle_id || !status) {
     throw new Error('vehicle_id and status are required.');
   }
-  if (!['active', 'inactive', 'delete'].includes(status)) {
-    throw new Error('status must be active, inactive, or delete.');
+  if (!['active', 'delete'].includes(status)) {
+    throw new Error('status must be active or delete.');
   }
   const { UserVehicle, VehicleChallan, VehicleRTOData } = models;
   const vehicle = await UserVehicle.findOne({ where: { id: vehicle_id } });

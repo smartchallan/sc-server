@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS di_user_vehicle (
     admin_id INT NOT NULL,
     registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    status ENUM('active', 'inactive', 'deleted') NOT NULL DEFAULT 'active'
+    status ENUM('active', 'deleted') NOT NULL DEFAULT 'active'
 );
 
 
