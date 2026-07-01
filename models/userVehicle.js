@@ -24,6 +24,13 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+    // Timestamp the vehicle was moved to 'deleted' (null while active). Drives the
+    // deleted-vehicles drawer and the "billable this month" calculation.
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'di_user_vehicle',

@@ -52,9 +52,10 @@ module.exports = (models) => {
       // Cascade status to all vehicles of this user (client_id = user_id).
       // Vehicles only support 'active' / 'deleted', so a deactivated account
       // marks its vehicles 'deleted' (status-only; reactivating restores them).
+      const now = new Date();
       const vehicleStatus = status === 'active' ? 'active' : 'deleted';
       await UserVehicle.update(
-        { status: vehicleStatus, updated_at: new Date() },
+        { status: vehicleStatus, deleted_at: vehicleStatus === 'deleted' ? now : null, updated_at: now },
         { where: { client_id: user_id } }
       );
 

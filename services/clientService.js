@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
-const { Sequelize } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
+const moment = require('moment-timezone');
 const UserModel = require('../models/user');
 const UserMetaModel = require('../models/user_meta');
 
@@ -42,6 +43,8 @@ exports.getClientNetwork = async (parentId) => {
   // Use the application's main models to avoid creating a separate DB connection
   const appModels = require('../models');
   const AppUser = appModels.User;
+  // Start of the current calendar month in IST, as a UTC Date for the query.
+  const monthStart = moment.tz('Asia/Kolkata').startOf('month').utc().toDate();
 
   const fetchChildren = async (pid) => {
     try {
@@ -73,16 +76,22 @@ exports.getClientNetwork = async (parentId) => {
           console.error('Error fetching user_meta for user', c.id, metaErr && metaErr.stack ? metaErr.stack : metaErr);
           user_meta = null;
         }
-        // Count this user's own vehicles
-        let vehicle_count = 0;
+        // Count this user's own vehicles, split by status. Billable = active +
+        // vehicles deleted within the current (calendar) month; vehicles deleted
+        // in an earlier month are no longer billed.
+        let active_count = 0, deleted_count = 0, deleted_this_month = 0;
         try {
           if (AppUserVehicle) {
-            vehicle_count = await AppUserVehicle.count({ where: { client_id: c.id } });
+            active_count = await AppUserVehicle.count({ where: { client_id: c.id, status: 'active' } });
+            deleted_count = await AppUserVehicle.count({ where: { client_id: c.id, status: 'deleted' } });
+            deleted_this_month = await AppUserVehicle.count({
+              where: { client_id: c.id, status: 'deleted', deleted_at: { [Op.gte]: monthStart } }
+            });
           }
         } catch (vErr) {
           console.error('Error counting vehicles for user', c.id, vErr && vErr.stack ? vErr.stack : vErr);
-          vehicle_count = 0;
         }
+        const billable_count = active_count + deleted_this_month;
         // Build a sanitized object to ensure sensitive/unused fields are not returned
         const item = {
           id: c.id,
@@ -93,7 +102,12 @@ exports.getClientNetwork = async (parentId) => {
           last_login_at: c.last_login_at,
           created_at: c.created_at,
           user_meta: user_meta,
-          vehicle_count,
+          // vehicle_count kept for backward-compat (total own vehicles); the
+          // network aggregate on the client sums this field.
+          vehicle_count: active_count + deleted_count,
+          active_count,
+          deleted_count,
+          billable_count,
           children: nested
         };
         results.push(item);

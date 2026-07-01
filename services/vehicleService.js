@@ -39,8 +39,10 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   // Convert incoming 'delete' to 'deleted' for DB compatibility
   const dbStatus = status === 'delete' ? 'deleted' : status;
 
-  // Always update status field
-  await vehicle.update({ status: dbStatus });
+  // Track when the vehicle was deleted (used for the deleted-vehicles drawer and
+  // "billable this month"). Clear it again when a vehicle is re-activated.
+  const statusFields = { status: dbStatus, deleted_at: dbStatus === 'deleted' ? new Date() : null };
+  await vehicle.update(statusFields);
 
   if (status === 'delete') {
     // Clear RTO and challan data for this vehicle and client
