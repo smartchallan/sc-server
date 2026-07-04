@@ -83,6 +83,16 @@ async function registerUser(data) {
         trial_expires_at: trialExpiresAt,
     };
 
+    // Token-billing: billable accounts carry a billing_type (prepaid/postpaid) and
+    // an optional grace period. Non-billable accounts keep the postpaid default.
+    if (typeof data.billing_type !== 'undefined' && data.billing_type !== null && data.billing_type !== '') {
+        userData.billing_type = data.billing_type;
+    }
+    if (typeof data.grace_days !== 'undefined' && data.grace_days !== null && data.grace_days !== '') {
+        const gd = parseInt(data.grace_days, 10);
+        if (!isNaN(gd) && gd >= 0) userData.grace_days = gd;
+    }
+
     // Create user record
     const user = await User.create(userData);
     const userObj = user.toJSON ? user.toJSON() : user;

@@ -31,6 +31,25 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null
+    },
+    // ── Token-billing subscription (set when a token is spent on this vehicle) ──
+    // Actual expiry: activation/renewal sets this to +1 month.
+    subscription_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
+    },
+    // Grace expiry = subscription_expires_at + the owner's grace_days.
+    grace_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
+    },
+    // Set when an expiry reminder was last sent; cleared on renew so the next term reminds again.
+    expiry_reminder_sent_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'di_user_vehicle',

@@ -16,6 +16,12 @@ const DIUserNotificationReceiversModel = require('./di_user_notification_receive
 const DIUserActivityModel = require('./di_user_activity');
 const ClientNotificationModel = require('./client_notification');
 const VehicleReportModel = require('./vehicle_report');
+const WalletModel = require('./wallet');
+const WalletTransactionModel = require('./wallet_transaction');
+const BillingRateModel = require('./billing_rate');
+const InvoiceModel = require('./invoice');
+const InvoiceCounterModel = require('./invoice_counter');
+const SystemSettingModel = require('./system_setting');
 
 require('dotenv').config();
 
@@ -65,6 +71,36 @@ const UserActivity = DIUserActivityModel(sequelize);
 const ClientNotification = ClientNotificationModel(sequelize);
 const VehicleReport = VehicleReportModel(sequelize);
 
+// ── Billing: wallets, ledger, rates, invoices ───────────────────────────────
+const Wallet = WalletModel(sequelize);
+const WalletTransaction = WalletTransactionModel(sequelize);
+const BillingRate = BillingRateModel(sequelize);
+const Invoice = InvoiceModel(sequelize);
+const InvoiceCounter = InvoiceCounterModel(sequelize);
+const SystemSetting = SystemSettingModel(sequelize);
+
+// Wallet ↔ User (owner)
+User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
+Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// Ledger rows ↔ Wallet / owner / counterparty
+Wallet.hasMany(WalletTransaction, { foreignKey: 'wallet_id', as: 'transactions' });
+WalletTransaction.belongsTo(Wallet, { foreignKey: 'wallet_id', as: 'wallet' });
+WalletTransaction.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
+WalletTransaction.belongsTo(User, { foreignKey: 'counterparty_user_id', as: 'counterparty' });
+
+// Per-client rate card
+User.hasOne(BillingRate, { foreignKey: 'client_id', as: 'billingRate' });
+BillingRate.belongsTo(User, { foreignKey: 'client_id', as: 'client' });
+
+// Invoices ↔ buyer (client) / seller (issuer) / vehicle / debit ledger row
+User.hasMany(Invoice, { foreignKey: 'client_id', as: 'invoices' });
+Invoice.belongsTo(User, { foreignKey: 'client_id', as: 'client' });
+Invoice.belongsTo(User, { foreignKey: 'issued_by_user_id', as: 'issuer' });
+Invoice.belongsTo(UserVehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
+UserVehicle.hasMany(Invoice, { foreignKey: 'vehicle_id', as: 'invoices' });
+Invoice.belongsTo(WalletTransaction, { foreignKey: 'wallet_transaction_id', as: 'walletTransaction' });
+
 module.exports = {
   sequelize,
   User,
@@ -87,4 +123,10 @@ module.exports = {
   UserActivity,
   ClientNotification,
   VehicleReport,
+  Wallet,
+  WalletTransaction,
+  BillingRate,
+  Invoice,
+  InvoiceCounter,
+  SystemSetting,
 };

@@ -20,7 +20,12 @@ module.exports = (sequelize) => {
   default_online_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
   default_court_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
   default_virtual_court_fee: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
-  default_gst_percent: { type: DataTypes.DECIMAL(5, 2), allowNull: true }
+  default_gst_percent: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+  // ── Token-billing / tax-invoice identity (used on printed invoices) ──────────
+  gstin: { type: DataTypes.STRING(20), allowNull: true },
+  invoice_tax_percent: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+  invoice_prefix: { type: DataTypes.STRING(12), allowNull: true },
+  logo_url: { type: DataTypes.STRING(500), allowNull: true }
   }, {
     tableName: 'di_user_meta',
     timestamps: false

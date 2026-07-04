@@ -131,6 +131,7 @@ const getClientNetworkRouter = require('./routes/getClientNetwork');
 const userActivityRouter = require('./routes/userActivity');
 
 const getNetworkStatsRouter = require('./routes/getNetworkStats');
+const billingRouter = require('./routes/billing');
 const notificationsRouter = require('./routes/notifications')(models);
 const masterSearchRouter = require('./routes/masterSearch')(models);
 const jobLastRunRouter = require('./routes/jobLastRun')(models);
@@ -155,6 +156,9 @@ app.use('/notifications', notificationsRouter);
 
 // New endpoint - get network stats
 app.use('/getnetworkstats', getNetworkStatsRouter);
+
+// Token-billing module (wallets, mint, recharge/transfer, invoices, rates)
+app.use('/billing', billingRouter);
 
 // Master search across dealer network
 app.use('/master-search', masterSearchRouter);

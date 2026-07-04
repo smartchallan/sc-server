@@ -11,6 +11,13 @@ module.exports = (sequelize) => {
     status: { type: DataTypes.STRING, defaultValue: 'active' },
     account_type: { type: DataTypes.STRING, allowNull: false, defaultValue: 'trial' }, // trial | billable | demo
     trial_expires_at: { type: DataTypes.DATE, allowNull: true },
+    // prepaid = vehicles are paid for with wallet tokens (the token-billing module).
+    // postpaid = billed outside the token system. Existing accounts default to
+    // postpaid so enabling the module doesn't retroactively gate anyone.
+    billing_type: { type: DataTypes.ENUM('prepaid', 'postpaid'), allowNull: false, defaultValue: 'postpaid' },
+    // Extra days added beyond the 1-month token term for this account's vehicles
+    // (grace period, set at account creation).
+    grace_days: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     last_login_at: { type: DataTypes.DATE, allowNull: true },
