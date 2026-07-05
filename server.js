@@ -96,6 +96,8 @@ require('./jobs/vehicleRTOBatchScheduler');
 require('./jobs/expiredInsuranceNotificationScheduler');
 // Trial account expiry reminders and deactivation
 require('./jobs/trialAccountScheduler');
+// Vehicle subscription expiry: auto-deactivate past grace, auto-renew, 7-day warnings
+require('./jobs/vehicleExpiryScheduler');
 
 // Register update vehicle status route
 const updateVehicleRouter = require('./routes/updateVehicle')(models);

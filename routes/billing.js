@@ -28,6 +28,9 @@ router.post('/transfer',        requireBillingManager, billingController.transfe
 router.get('/rates',                requireBillingManager, billingController.getRates);
 router.put('/rates/:clientId',      requireBillingManager, billingController.setRate);
 
+// ── Grace period per client account (dealer / papa) ──────────────────────────
+router.put('/clients/:clientId/grace', requireBillingManager, billingController.setClientGrace);
+
 // ── Quote (preview cost before charging) ─────────────────────────────────────
 router.get('/quote', billingController.getQuote);
 

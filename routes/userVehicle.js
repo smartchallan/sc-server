@@ -4,6 +4,8 @@ const router = express.Router();
 const userVehicleService = require('../services/userVehicleService');
 const { getRTODetails } = require('../services/vehicleRTOService');
 const { getChallanDetails } = require('../services/vehicleChallanService');
+const { sequelize } = require('../models');
+const billingService = require('../services/billing.service');
 
 /**
  * Fire-and-forget: fetch RTO + challan data for a newly registered vehicle.
@@ -66,10 +68,34 @@ module.exports = (UserVehicle, models) => {
       }
 
       if (result && result.vehicle) {
-        // Logging response
-        console.table([result.vehicle.toJSON ? result.vehicle.toJSON() : result.vehicle]);
-        // Respond immediately, then kick off RTO + challan fetch in background
-        res.status(201).json(result);
+        // Apply the 1-month subscription term (+ grace) to the new vehicle. Billable
+        // -prepaid owners also spend 1 token — if their wallet is empty the whole add
+        // is rolled back (the vehicle row is removed) and we return 402.
+        try {
+          const owner = models && models.User && client_id
+            ? await models.User.findByPk(client_id)
+            : null;
+          const chargeToken = billingService.ownerChargesToken(owner);
+          await sequelize.transaction(async (t) => {
+            const v = await UserVehicle.findOne({ where: { id: result.vehicle.id }, lock: t.LOCK.UPDATE, transaction: t });
+            await billingService.activateOrRenew({
+              actor: { id: req.client?.id }, vehicle: v, type: 'ACTIVATION', chargeToken, transaction: t,
+            });
+          });
+        } catch (termErr) {
+          if (termErr.status === 402 || termErr.code === 'INSUFFICIENT_FUNDS') {
+            // Prepaid client with no tokens — undo the add so nothing is charged.
+            await UserVehicle.destroy({ where: { id: result.vehicle.id } });
+            return res.status(402).json({ error: termErr.message, code: termErr.code, details: termErr.details });
+          }
+          // Non-fatal (e.g. transient): keep the vehicle; expiry can be set later.
+          console.error('[register] failed to apply subscription term:', termErr.message);
+        }
+
+        // Reload so the response carries the freshly-set expiry dates.
+        const fresh = await UserVehicle.findByPk(result.vehicle.id);
+        console.table([fresh ? fresh.toJSON() : result.vehicle]);
+        res.status(201).json({ message: result.message, vehicle: fresh || result.vehicle });
         const vn = (result.vehicle.vehicle_number || vehicle_number || '').trim().toUpperCase();
         if (vn && client_id) triggerInitialDataFetch(vn, client_id);
         return;

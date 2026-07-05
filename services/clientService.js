@@ -45,6 +45,9 @@ exports.getClientNetwork = async (parentId) => {
   const AppUser = appModels.User;
   // Start of the current calendar month in IST, as a UTC Date for the query.
   const monthStart = moment.tz('Asia/Kolkata').startOf('month').utc().toDate();
+  // Subscription "expiring soon" cutoff (actual expiry within the warn window).
+  const WARN_DAYS = parseInt(process.env.EXPIRY_WARN_DAYS, 10) || 7;
+  const expiryCutoff = moment.tz('Asia/Kolkata').add(WARN_DAYS, 'days').endOf('day').utc().toDate();
 
   const fetchChildren = async (pid) => {
     try {
@@ -55,7 +58,7 @@ exports.getClientNetwork = async (parentId) => {
          const children = await AppUser.findAll({
            where: { parent_id: pid },
            // Exclude role, client_id, dealer_id, admin_id from returned attributes
-           attributes: ['id','name','email','status','parent_id','last_login_at','created_at'],
+           attributes: ['id','name','email','status','parent_id','last_login_at','created_at','grace_days'],
            raw: true
          });
 
@@ -79,13 +82,17 @@ exports.getClientNetwork = async (parentId) => {
         // Count this user's OWN vehicles, split by status. Billable = active +
         // vehicles deleted within the current (calendar) month; vehicles deleted
         // in an earlier month are no longer billed.
-        let own_active = 0, own_deleted = 0, own_deleted_this_month = 0;
+        let own_active = 0, own_deleted = 0, own_deleted_this_month = 0, own_expiring = 0;
         try {
           if (AppUserVehicle) {
             own_active = await AppUserVehicle.count({ where: { client_id: c.id, status: 'active' } });
             own_deleted = await AppUserVehicle.count({ where: { client_id: c.id, status: 'deleted' } });
             own_deleted_this_month = await AppUserVehicle.count({
               where: { client_id: c.id, status: 'deleted', deleted_at: { [Op.gte]: monthStart } }
+            });
+            // Active vehicles whose subscription expiry falls within the warn window.
+            own_expiring = await AppUserVehicle.count({
+              where: { client_id: c.id, status: 'active', subscription_expires_at: { [Op.ne]: null, [Op.lte]: expiryCutoff } }
             });
           }
         } catch (vErr) {
@@ -99,6 +106,7 @@ exports.getClientNetwork = async (parentId) => {
         const active_count = own_active + sumChild('active_count');
         const deleted_count = own_deleted + sumChild('deleted_count');
         const billable_count = own_billable + sumChild('billable_count');
+        const expiring_count = own_expiring + sumChild('expiring_count');
         // Build a sanitized object to ensure sensitive/unused fields are not returned
         const item = {
           id: c.id,
@@ -108,6 +116,7 @@ exports.getClientNetwork = async (parentId) => {
           parent_id: c.parent_id,
           last_login_at: c.last_login_at,
           created_at: c.created_at,
+          grace_days: c.grace_days,
           user_meta: user_meta,
           // Own (non-aggregated) total, kept for the client-side network tooltip.
           vehicle_count: own_active + own_deleted,
@@ -115,6 +124,8 @@ exports.getClientNetwork = async (parentId) => {
           active_count,
           deleted_count,
           billable_count,
+          own_expiring,
+          expiring_count,
           children: nested
         };
         results.push(item);

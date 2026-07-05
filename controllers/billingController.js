@@ -82,6 +82,14 @@ const setRate = async (req, res) => {
   } catch (err) { return fail(res, err); }
 };
 
+// ─── Grace period (per client account) ───────────────────────────────────────
+const setClientGrace = async (req, res) => {
+  try {
+    const data = await billingService.setClientGrace({ actor: req.user, clientId: req.params.clientId, graceDays: req.body.graceDays });
+    return res.json({ success: true, message: 'Grace period saved', data });
+  } catch (err) { return fail(res, err); }
+};
+
 // ─── Recharge quote (preview ₹ for a token sale) ─────────────────────────────
 const getQuote = async (req, res) => {
   try {
@@ -145,6 +153,7 @@ module.exports = {
   transfer,
   getRates,
   setRate,
+  setClientGrace,
   getQuote,
   renewVehicle,
   setVehicleExpiry,

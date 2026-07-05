@@ -197,29 +197,39 @@ const resolveGraceDays = async (clientId, transaction) => {
   return u ? Number(u.grace_days || 0) : 0;
 };
 
+/** Does this owner pay for vehicles with wallet tokens? */
+const ownerChargesToken = (owner) =>
+  owner?.account_type === 'billable' && owner?.billing_type === 'prepaid';
+
 /**
- * Spend exactly 1 vehicle token from the owner's wallet and set the vehicle's
- * billed-till to +1 month. No money invoice — the money was billed when the tokens
- * were purchased (the RECHARGE). Runs inside the supplied transaction; throws
- * INSUFFICIENT_FUNDS (402) — rolling everything back — when the wallet has no
- * token to spend.
+ * Set a vehicle's billed-till to +1 month (+ grace). Every vehicle gets an expiry
+ * regardless of account type. When `chargeToken` is true (billable-prepaid owners)
+ * it ALSO spends exactly 1 vehicle token from the owner's wallet — throwing
+ * INSUFFICIENT_FUNDS (402) and rolling everything back when the wallet is empty.
+ * Non-prepaid owners extend at no token cost. Runs inside the supplied transaction.
  */
-const activateOrRenew = async ({ actor, vehicle, type, transaction }) => {
+const activateOrRenew = async ({ actor, vehicle, type, chargeToken = true, transaction }) => {
   const clientId = vehicle.client_id;
   const refType = type === 'ACTIVATION' ? 'VEHICLE_ACTIVATION' : 'VEHICLE_RENEWAL';
   const label = type === 'ACTIVATION' ? 'Activation' : 'Renewal';
 
-  // 1. Spend 1 vehicle token (throws → rolls back).
-  const { txn, balanceAfter } = await adjustWallet({
-    userId: clientId,
-    delta: -TOKENS_PER_VEHICLE,
-    type: 'DEBIT',
-    refType,
-    performedByUserId: actor?.id || null,
-    refId: vehicle.id,
-    note: `${label} – ${vehicle.vehicle_number || vehicle.chasis_number || `vehicle #${vehicle.id}`} (1 vehicle token)`,
-    transaction,
-  });
+  // 1. Spend 1 vehicle token for billable-prepaid owners (throws → rolls back).
+  let balanceAfter = null;
+  let tokenTxnId = null;
+  if (chargeToken) {
+    const { txn, balanceAfter: bal } = await adjustWallet({
+      userId: clientId,
+      delta: -TOKENS_PER_VEHICLE,
+      type: 'DEBIT',
+      refType,
+      performedByUserId: actor?.id || null,
+      refId: vehicle.id,
+      note: `${label} – ${vehicle.vehicle_number || vehicle.chasis_number || `vehicle #${vehicle.id}`} (1 vehicle token)`,
+      transaction,
+    });
+    balanceAfter = bal;
+    tokenTxnId = txn.id;
+  }
 
   // 2. ACTUAL expiry: activation from now; renewal extends from current expiry if still valid.
   const now = new Date();
@@ -230,7 +240,7 @@ const activateOrRenew = async ({ actor, vehicle, type, transaction }) => {
   }
   const actualExpiry = addMonths(periodStart, SUBSCRIPTION_MONTHS);
 
-  // 3. GRACE expiry = actual + the client's grace days (set at account creation).
+  // 3. GRACE expiry = actual + the client's grace days (set on the profile).
   const graceDays = await resolveGraceDays(clientId, transaction);
   const graceExpiry = graceDays > 0 ? addDays(actualExpiry, graceDays) : actualExpiry;
 
@@ -243,20 +253,29 @@ const activateOrRenew = async ({ actor, vehicle, type, transaction }) => {
     status: 'active',
   }, { transaction });
 
-  return { tokenTxnId: txn.id, balanceAfter, periodEnd: actualExpiry, graceExpiry, graceDays };
+  return { tokenTxnId, balanceAfter, periodEnd: actualExpiry, graceExpiry, graceDays };
 };
 
-/** Renew an existing vehicle — spends 1 token (opens its own transaction). */
+/**
+ * Apply the initial 1-month term to a brand-new vehicle. Charges a token only for
+ * billable-prepaid owners. Meant to run inside the vehicle-create transaction so a
+ * prepaid client with an empty wallet has the whole add rolled back (402).
+ */
+const activateVehicleOnAdd = async ({ actor, vehicle, chargeToken, transaction }) =>
+  activateOrRenew({ actor, vehicle, type: 'ACTIVATION', chargeToken, transaction });
+
+/**
+ * Renew an existing vehicle (+1 month from current expiry). Billable-prepaid owners
+ * spend 1 token (fails if the wallet is empty); everyone else extends at no cost.
+ * Opens its own transaction.
+ */
 const renewVehicle = async ({ actor, vehicleId }) => {
   return sequelize.transaction(async (t) => {
     const vehicle = await Vehicle.findOne({ where: { id: vehicleId }, lock: t.LOCK.UPDATE, transaction: t });
     if (!vehicle) throw httpError('Vehicle not found', 404);
-    if (!actor.clientIds?.includes(vehicle.client_id)) throw httpError('You do not have access to this vehicle.', 403);
+    if (actor.clientIds && !actor.clientIds.includes(vehicle.client_id)) throw httpError('You do not have access to this vehicle.', 403);
     const owner = await User.findByPk(vehicle.client_id, { attributes: ['billing_type', 'account_type'], transaction: t });
-    if (owner?.billing_type !== 'prepaid' || owner?.account_type !== 'billable') {
-      throw httpError('Token renewal only applies to billable prepaid clients.', 400);
-    }
-    const result = await activateOrRenew({ actor, vehicle, type: 'RENEWAL', transaction: t });
+    const result = await activateOrRenew({ actor, vehicle, type: 'RENEWAL', chargeToken: ownerChargesToken(owner), transaction: t });
     return {
       balanceAfter: result.balanceAfter,
       subscriptionExpiresAt: result.periodEnd,
@@ -296,6 +315,22 @@ const setVehicleExpiry = async ({ actor, vehicleId, subscriptionExpiresAt, grace
     graceExpiresAt: vehicle.grace_expires_at,
     status: vehicle.status,
   };
+};
+
+/**
+ * Set a client account's grace period (extra days beyond the 1-month term on each
+ * activation/renewal). A dealer/top account can set it for any account in its
+ * network. Applies to future add/renew — existing vehicle dates are unchanged.
+ */
+const setClientGrace = async ({ actor, clientId, graceDays }) => {
+  const cid = Number(clientId);
+  if (actor.clientIds && !actor.clientIds.includes(cid)) throw httpError('You do not have access to this client.', 403);
+  const days = parseInt(graceDays, 10);
+  if (!Number.isInteger(days) || days < 0) throw httpError('Grace days must be a whole number of 0 or greater', 400);
+  const user = await User.findByPk(cid);
+  if (!user) throw httpError('Client not found', 404);
+  await user.update({ grace_days: days });
+  return { clientId: cid, graceDays: days };
 };
 
 // ─── Token movements: mint + recharge (the chain) ────────────────────────────
@@ -598,9 +633,12 @@ module.exports = {
   listRates,
   computeRechargeAmount,
   quoteRecharge,
+  ownerChargesToken,
   activateOrRenew,
+  activateVehicleOnAdd,
   renewVehicle,
   setVehicleExpiry,
+  setClientGrace,
   mintCoins,
   transferCoins,
   getMyWallet,

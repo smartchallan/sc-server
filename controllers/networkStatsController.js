@@ -1,5 +1,9 @@
 const { User, UserVehicle, DiVehicleChallanJob, VehicleChallan, VehicleRTOData } = require('../models');
+const { Op } = require('sequelize');
 const moment = require('moment');
+
+// Subscription "expiring soon" window (days) — matches the fleet red/green threshold.
+const EXPIRY_WARN_DAYS = parseInt(process.env.EXPIRY_WARN_DAYS, 10) || 7;
 
 // Helper to recursively fetch all clients under a parent id
 async function fetchAllClients(parentId, allClients = []) {
@@ -136,12 +140,24 @@ exports.getNetworkStats = async (req, res) => {
       renewalStats.insurance + renewalStats.road_tax +
       renewalStats.fitness + renewalStats.pollution;
 
+    // Vehicle subscription expiring within the warn window (actual expiry ≤ now+N days),
+    // across the whole network. Includes already-past-but-still-active (in grace).
+    const expiryCutoff = moment().add(EXPIRY_WARN_DAYS, 'days').endOf('day').toDate();
+    const expiringVehicles = await UserVehicle.count({
+      where: {
+        client_id: allClientIds,
+        status: 'active',
+        subscription_expires_at: { [Op.ne]: null, [Op.lte]: expiryCutoff },
+      },
+    });
+
     const result = {
       hasNetwork,
       totalClients: allClients.length,
       clientStatus: statusCount,
       totalVehicles,
       vehicleStatus,
+      expiringVehicles,
       totalChallans: challans.length,
       challanStatus: challanStats.statusCount,
       challanAmount: {
