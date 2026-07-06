@@ -333,6 +333,39 @@ const setClientGrace = async ({ actor, clientId, graceDays }) => {
   return { clientId: cid, graceDays: days };
 };
 
+/**
+ * Set a client account's billing plan: account_type (trial | billable) and, when
+ * billable, billing_type (prepaid | postpaid). A dealer/top account can change it
+ * for any account in its network. Non-billable accounts default billing_type to
+ * postpaid (the token wallet only applies to billable-prepaid).
+ */
+const ACCOUNT_TYPES = ['trial', 'billable', 'demo'];
+const BILLING_TYPES = ['prepaid', 'postpaid'];
+const setClientAccount = async ({ actor, clientId, accountType, billingType }) => {
+  const cid = Number(clientId);
+  if (actor.clientIds && !actor.clientIds.includes(cid)) throw httpError('You do not have access to this client.', 403);
+  const user = await User.findByPk(cid);
+  if (!user) throw httpError('Client not found', 404);
+
+  const updates = {};
+  if (accountType !== undefined) {
+    if (!ACCOUNT_TYPES.includes(accountType)) throw httpError('Invalid account type', 400);
+    updates.account_type = accountType;
+  }
+  const effectiveType = updates.account_type ?? user.account_type;
+  if (effectiveType === 'billable') {
+    const bt = billingType ?? user.billing_type ?? 'postpaid';
+    if (!BILLING_TYPES.includes(bt)) throw httpError('Invalid billing type', 400);
+    updates.billing_type = bt;
+  } else if (accountType !== undefined) {
+    // Non-billable accounts don't use the token wallet — normalise to postpaid.
+    updates.billing_type = 'postpaid';
+  }
+
+  await user.update(updates);
+  return { clientId: cid, accountType: user.account_type, billingType: user.billing_type };
+};
+
 // ─── Token movements: mint + recharge (the chain) ────────────────────────────
 /** Papa mints vehicle tokens into its own wallet — the origin of all tokens. */
 const mintCoins = async ({ actor, amount, note }) => {
@@ -639,6 +672,7 @@ module.exports = {
   renewVehicle,
   setVehicleExpiry,
   setClientGrace,
+  setClientAccount,
   mintCoins,
   transferCoins,
   getMyWallet,

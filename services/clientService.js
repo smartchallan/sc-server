@@ -58,7 +58,7 @@ exports.getClientNetwork = async (parentId) => {
          const children = await AppUser.findAll({
            where: { parent_id: pid },
            // Exclude role, client_id, dealer_id, admin_id from returned attributes
-           attributes: ['id','name','email','status','parent_id','last_login_at','created_at','grace_days'],
+           attributes: ['id','name','email','status','parent_id','last_login_at','created_at','grace_days','account_type','billing_type'],
            raw: true
          });
 
@@ -117,6 +117,8 @@ exports.getClientNetwork = async (parentId) => {
           last_login_at: c.last_login_at,
           created_at: c.created_at,
           grace_days: c.grace_days,
+          account_type: c.account_type,
+          billing_type: c.billing_type,
           user_meta: user_meta,
           // Own (non-aggregated) total, kept for the client-side network tooltip.
           vehicle_count: own_active + own_deleted,

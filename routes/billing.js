@@ -31,6 +31,9 @@ router.put('/rates/:clientId',      requireBillingManager, billingController.set
 // ── Grace period per client account (dealer / papa) ──────────────────────────
 router.put('/clients/:clientId/grace', requireBillingManager, billingController.setClientGrace);
 
+// ── Billing plan: account type + prepaid/postpaid per client (dealer / papa) ──
+router.put('/clients/:clientId/account', requireBillingManager, billingController.setClientAccount);
+
 // ── Quote (preview cost before charging) ─────────────────────────────────────
 router.get('/quote', billingController.getQuote);
 

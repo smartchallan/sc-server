@@ -90,6 +90,17 @@ const setClientGrace = async (req, res) => {
   } catch (err) { return fail(res, err); }
 };
 
+// ─── Billing plan: account type (trial/billable) + billing type (prepaid/postpaid) ─
+const setClientAccount = async (req, res) => {
+  try {
+    const data = await billingService.setClientAccount({
+      actor: req.user, clientId: req.params.clientId,
+      accountType: req.body.accountType, billingType: req.body.billingType,
+    });
+    return res.json({ success: true, message: 'Billing plan saved', data });
+  } catch (err) { return fail(res, err); }
+};
+
 // ─── Recharge quote (preview ₹ for a token sale) ─────────────────────────────
 const getQuote = async (req, res) => {
   try {
@@ -154,6 +165,7 @@ module.exports = {
   getRates,
   setRate,
   setClientGrace,
+  setClientAccount,
   getQuote,
   renewVehicle,
   setVehicleExpiry,
