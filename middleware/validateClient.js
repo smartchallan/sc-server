@@ -6,6 +6,9 @@ const PUBLIC_PATHS = [
   '/ping',
   '/auth/login',
   '/auth/register',
+  // PayU posts its payment result back here without our JWT (server-to-browser redirect).
+  '/settlement/payu/callback/success',
+  '/settlement/payu/callback/failure',
 ];
 
 function isPublic(req) {

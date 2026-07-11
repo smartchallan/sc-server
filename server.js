@@ -20,9 +20,12 @@ const {
   VehicleRTOData,
   VehicleChallan,
   Cart,
+  CartLineItem,
   UserBilling,
   ClientNotification,
   VehicleReport,
+  Payment,
+  CartApproval,
 } = require('./models');
 const { DiDriverData } = require('./models');
 
@@ -41,8 +44,8 @@ const { UserOptions } = require('./models');
 
 const models = {
   User, UserMeta, UserVehicle, UserVehicles, UserSettings,
-  UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, UserBilling,
-  ClientNotification, VehicleReport, UserOptions,
+  UserVehicleRtoData, VehicleRTOData, VehicleChallan, Cart, CartLineItem, UserBilling,
+  ClientNotification, VehicleReport, UserOptions, Payment, CartApproval,
 };
 
 models.DiDriverData = DiDriverData;
@@ -137,6 +140,7 @@ const billingRouter = require('./routes/billing');
 const notificationsRouter = require('./routes/notifications')(models);
 const masterSearchRouter = require('./routes/masterSearch')(models);
 const jobLastRunRouter = require('./routes/jobLastRun')(models);
+const settlementRouter = require('./routes/settlement');
 
 app.use('/auth', authRouter);
 app.use('/stats/', countRouter);
@@ -161,6 +165,9 @@ app.use('/getnetworkstats', getNetworkStatsRouter);
 
 // Token-billing module (wallets, mint, recharge/transfer, invoices, rates)
 app.use('/billing', billingRouter);
+
+// Challan settlement module (chain approval + PayU gateway)
+app.use('/settlement', settlementRouter);
 
 // Master search across dealer network
 app.use('/master-search', masterSearchRouter);

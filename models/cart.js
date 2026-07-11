@@ -10,6 +10,10 @@ module.exports = (sequelize) => {
     transaction_id: { type: DataTypes.STRING(128), allowNull: true },
     last_updated_by: { type: DataTypes.ENUM('admin', 'dealer', 'client'), allowNull: true },
     status: { type: DataTypes.STRING(32), allowNull: true, defaultValue: 'pending' },
+    // Challan-settlement fields (added by 20260712000000-add-challan-settlement)
+    total_amount: { type: DataTypes.FLOAT, allowNull: true },
+    top_account_id: { type: DataTypes.INTEGER, allowNull: true },
+    current_approver_id: { type: DataTypes.INTEGER, allowNull: true },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {

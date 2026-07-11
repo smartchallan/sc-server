@@ -22,6 +22,8 @@ const BillingRateModel = require('./billing_rate');
 const InvoiceModel = require('./invoice');
 const InvoiceCounterModel = require('./invoice_counter');
 const SystemSettingModel = require('./system_setting');
+const PaymentModel = require('./payment');
+const CartApprovalModel = require('./cart_approval');
 
 require('dotenv').config();
 
@@ -101,6 +103,15 @@ Invoice.belongsTo(UserVehicle, { foreignKey: 'vehicle_id', as: 'vehicle' });
 UserVehicle.hasMany(Invoice, { foreignKey: 'vehicle_id', as: 'invoices' });
 Invoice.belongsTo(WalletTransaction, { foreignKey: 'wallet_transaction_id', as: 'walletTransaction' });
 
+// ── Challan settlement: payments + approval chain ────────────────────────────
+const Payment = PaymentModel(sequelize);
+const CartApproval = CartApprovalModel(sequelize);
+
+Cart.hasMany(CartApproval, { foreignKey: 'cart_id', as: 'approvals' });
+CartApproval.belongsTo(Cart, { foreignKey: 'cart_id', as: 'cart' });
+Cart.hasMany(Payment, { foreignKey: 'cart_id', as: 'payments' });
+Payment.belongsTo(Cart, { foreignKey: 'cart_id', as: 'cart' });
+
 module.exports = {
   sequelize,
   User,
@@ -129,4 +140,6 @@ module.exports = {
   Invoice,
   InvoiceCounter,
   SystemSetting,
+  Payment,
+  CartApproval,
 };
