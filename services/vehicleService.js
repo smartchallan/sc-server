@@ -1,7 +1,11 @@
 const axios = require('axios');
 const { Op } = require('sequelize');
 const { getValidToken } = require('../utils/ulipTokenManager');
-const ULIP_VAHAN_URL = process.env.ULIP_VAHAN_DETAILS_URL || 'https://www.ulip.dpiit.gov.in/ulip/v1.0.0/VAHAN/01';
+// getVehicleByNumber returns the RAW ULIP response (XML-in-string) to its own
+// consumers, so it stays on VAHAN/01. Only the RTO service (vehicleRTOService)
+// was migrated to VAHAN/04's JSON. Kept independent of ULIP_VAHAN_DETAILS_URL,
+// which now points to VAHAN/04.
+const ULIP_VAHAN_URL = process.env.ULIP_VAHAN_V1_URL || 'https://www.ulip.dpiit.gov.in/ulip/v1.0.0/VAHAN/01';
 
 async function getVehicleByNumber(vehicleNumber) {
   try {

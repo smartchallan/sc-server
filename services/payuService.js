@@ -18,8 +18,8 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const CONFIG = {
-  key: process.env.PAYU_MERCHANT_KEY || 'gtKFFx',            // PayU public test key
-  salt: process.env.PAYU_MERCHANT_SALT || 'eCwWELxi',        // PayU public test salt
+  key: process.env.PAYU_MERCHANT_KEY || 'gtKFFx',                         // PayU public test key
+  salt: process.env.PAYU_MERCHANT_SALT || '4R38IvwiV57FwVpsgOvTXBdLE4tHUXFW', // PayU public test salt (current; the old eCwWELxi was rotated)
   baseUrl: process.env.PAYU_BASE_URL || 'https://test.payu.in/_payment',
   // Server callback endpoints PayU redirects the browser back to (must be public / no JWT).
   surl: process.env.PAYU_SURL || 'http://localhost:3001/settlement/payu/callback/success',
