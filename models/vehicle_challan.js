@@ -7,6 +7,9 @@ module.exports = (sequelize) => {
     client_id: { type: DataTypes.INTEGER, allowNull: false },
     pending_data: { type: DataTypes.JSON, allowNull: true },
     disposed_data: { type: DataTypes.JSON, allowNull: true },
+    // Challans that were previously pending but are no longer returned by ULIP
+    // (cancelled/withdrawn at source). Each object is tagged challan_status:'Cancelled'.
+    cancelled_data: { type: DataTypes.JSON, allowNull: true },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {

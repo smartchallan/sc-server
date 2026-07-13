@@ -187,6 +187,29 @@ async function processChallanBatch({
           }
         }
 
+        // Cancellation sweep: any challan still marked 'pending' in the DB for this
+        // vehicle whose number ULIP did not return this run has been cancelled at
+        // source. (Runs on the success path only; if the fetch had failed we would
+        // not reach here, so a transient API error never wrongly cancels challans.)
+        try {
+          const JobModel2 = models.DiVehicleChallanJob;
+          const freshNos = new Set();
+          [...pendingArr, ...disposedArr].forEach((it) => {
+            const n = it && (it.challan_no || it.challan_number);
+            if (n) freshNos.add(String(n));
+          });
+          const pendingRows = await JobModel2.findAll({
+            where: { vehicle_number: vn, client_id: clientID, challan_status: 'pending' }
+          });
+          for (const row of pendingRows) {
+            if (!freshNos.has(String(row.challan_number))) {
+              await row.update({ challan_status: 'cancelled', updated_at: new Date() });
+            }
+          }
+        } catch (sweepErr) {
+          console.error('Cancellation sweep failed for', vn, sweepErr);
+        }
+
         return { vehicleNumber: vn, success: true, data };
       } catch (err) {
         return { vehicleNumber: vn, success: false, error: err.message };
