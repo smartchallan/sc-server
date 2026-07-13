@@ -72,6 +72,16 @@ async function callUlipWithRetry(url, data) {
   // Acquire a rate-limit slot before hitting the ULIP API
   await acquireSlot();
 
+  // A ULIP 403 can mean either "daily quota exhausted" or "not authorized".
+  // Only quota is non-retryable; matching several known wordings so a quota 403
+  // isn't misread as an auth failure (which would trigger a useless re-login on
+  // every vehicle and hammer the login endpoint).
+  const isQuotaMessage = (msg) => {
+    const m = (msg || '').toLowerCase();
+    return m.includes('daily usage limit') || m.includes('usage limit') ||
+           m.includes('quota') || m.includes('limit exceeded') || m.includes('exceeded your');
+  };
+
   let token = await getValidToken();
   try {
     return await makeRequest(token);
@@ -80,8 +90,14 @@ async function callUlipWithRetry(url, data) {
     const errBody = err.response?.data;
     const errMsg = errBody?.message || '';
 
+    // Surface the FULL ULIP body on 401/403 — this is what tells us the real
+    // reason (quota vs unauthorized vs wrong app/subscription).
+    if (status === 401 || status === 403) {
+      console.error(`[ULIP ${status}] ${url} body:`, JSON.stringify(errBody));
+    }
+
     // Daily quota exhausted — no point retrying or refreshing the token
-    if (status === 403 && errMsg.toLowerCase().includes('daily usage limit')) {
+    if (status === 403 && isQuotaMessage(errMsg)) {
       const quotaErr = new Error(`ULIP daily quota reached for ${url}. ${errMsg}`);
       quotaErr.code = 'ULIP_QUOTA_EXCEEDED';
       quotaErr.ulipMessage = errMsg;
@@ -92,7 +108,22 @@ async function callUlipWithRetry(url, data) {
     if (status === 401 || status === 403) {
       console.table({ action: `ULIP ${status} — forcing token refresh`, url });
       token = await refreshToken();
-      return await makeRequest(token);
+      try {
+        return await makeRequest(token);
+      } catch (retryErr) {
+        const rStatus = retryErr.response?.status;
+        const rBody = retryErr.response?.data;
+        console.error(`[ULIP ${rStatus} on retry] ${url} body:`, JSON.stringify(rBody));
+        // If the retry still fails with 403, a fresh token didn't help — this is
+        // an authorization/subscription problem, not an expired token.
+        if (rStatus === 403 && isQuotaMessage(rBody?.message)) {
+          const quotaErr = new Error(`ULIP daily quota reached for ${url}. ${rBody?.message || ''}`);
+          quotaErr.code = 'ULIP_QUOTA_EXCEEDED';
+          quotaErr.ulipMessage = rBody?.message || '';
+          throw quotaErr;
+        }
+        throw retryErr;
+      }
     }
 
     throw err;
