@@ -117,8 +117,19 @@ async function getChallanDetails(vehicleNumber, clientID) {
     }
   }
 
-  const pendingData = response.data.response[0].response.data?.Pending_data;
-  const disposedData = response.data.response[0].response.data?.Disposed_data;
+  // Defensive parse: the ULIP envelope for a vehicle with NO challans can come
+  // back "lean" — missing the nested `.response`/`.data` node — which would make a
+  // naive `response.data.response[0].response.data` access THROW. A throw here
+  // aborts getChallanDetails before the cancellation branch runs, so previously
+  // pending challans would never get cleared. (vehicleRTOService guards the same
+  // way.) Any missing level ⇒ ulipData = null ⇒ treated as "no challans".
+  const ulipData = response?.data?.response?.[0]?.response?.data ?? null;
+  if (!ulipData) {
+    console.log(`[challan] ${vehicleNumber}: ULIP returned no challan node. Raw envelope:`,
+      JSON.stringify(response?.data?.response?.[0]?.response ?? response?.data ?? null).slice(0, 500));
+  }
+  const pendingData = ulipData?.Pending_data;
+  const disposedData = ulipData?.Disposed_data;
   // Check if both pending and disposed data are empty or null
   const hasPendingChallans = pendingData && (Array.isArray(pendingData) ? pendingData.length > 0 : pendingData);
   const hasDisposedChallans = disposedData && (Array.isArray(disposedData) ? disposedData.length > 0 : disposedData);
@@ -191,7 +202,7 @@ async function getChallanDetails(vehicleNumber, clientID) {
     }
   );
   console.log('vehicle challan data pending', pendingArr.length, 'disposed', disposedArr.length, 'cancelled', cancelledData.length);
-  const rawData = response.data.response[0].response.data;
+  const rawData = ulipData || {};
   return {
     ...rawData,
     Pending_data: normalizeChallanDates(rawData.Pending_data),
