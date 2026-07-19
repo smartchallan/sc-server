@@ -55,9 +55,10 @@ module.exports = (models) => {
       // data is preserved) so enabling the account restores the vehicles.
       const now = new Date();
       if (status === 'active') {
-        // Re-activate: bring the soft-deleted vehicles back and clear deleted_at.
+        // Re-activate: bring the soft-deleted vehicles back, clear deleted_at and
+        // stamp activated_at so the re-activation moment is captured explicitly.
         await UserVehicle.update(
-          { status: 'active', deleted_at: null, updated_at: now },
+          { status: 'active', deleted_at: null, activated_at: now, updated_at: now },
           { where: { client_id: user_id, status: 'deleted' } }
         );
       } else {

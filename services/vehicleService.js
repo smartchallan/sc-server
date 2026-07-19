@@ -82,9 +82,13 @@ async function updateVehicleStatus(models, vehicle_id, status) {
   // Convert incoming 'delete' to 'deleted' for DB compatibility
   const dbStatus = status === 'delete' ? 'deleted' : status;
 
-  // Track when the vehicle was deleted (used for the deleted-vehicles drawer and
-  // "billable this month"). Clear it again when a vehicle is re-activated.
-  const statusFields = { status: dbStatus, deleted_at: dbStatus === 'deleted' ? new Date() : null };
+  // Explicitly capture both lifecycle dates: deletion stamps deleted_at (drives the
+  // deleted-vehicles drawer and "billable this month"); restore clears it and stamps
+  // activated_at with the moment the vehicle came back.
+  const now = new Date();
+  const statusFields = dbStatus === 'deleted'
+    ? { status: dbStatus, deleted_at: now, updated_at: now }
+    : { status: dbStatus, deleted_at: null, activated_at: now, updated_at: now };
   await vehicle.update(statusFields);
 
   if (status === 'delete') {

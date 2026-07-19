@@ -32,6 +32,13 @@ module.exports = (sequelize) => {
       allowNull: true,
       defaultValue: null
     },
+    // Timestamp the vehicle last became 'active' — set on registration and again on
+    // every restore, so activation is captured explicitly (registered_at never changes).
+    activated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null
+    },
     // ── Token-billing subscription (set when a token is spent on this vehicle) ──
     // Actual expiry: activation/renewal sets this to +1 month.
     subscription_expires_at: {

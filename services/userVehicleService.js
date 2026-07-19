@@ -100,7 +100,8 @@ module.exports = (UserVehicle) => {
       engine_number,
       client_id,
       parent_id,
-      status: 'active'
+      status: 'active',
+      activated_at: new Date()
     });
 
     return { message: 'Vehicle registered successfully', vehicle };
